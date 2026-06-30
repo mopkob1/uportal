@@ -1,0 +1,63 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+source /usr/local/bin/uportal-actions.sh
+
+publication_id="${1:-}"
+token="${2:-}"
+remaining_clicks="${3:--1}"
+actor="${4:-system}"
+
+BASE="/data/files/uportal"
+META_FILE="$BASE/meta/$publication_id/$token.json"
+
+json_error() {
+  jq -n --arg text "$1" '{status:"error",message:[{text:$text}]}'
+  exit 1
+}
+
+require_nonempty() {
+  [ -n "$2" ] || json_error "missing required field: $1"
+}
+
+require_nonempty "publication_id" "$publication_id"
+require_nonempty "token" "$token"
+
+[ -f "$META_FILE" ] || json_error "meta not found: $META_FILE"
+printf '%s' "$remaining_clicks" | grep -Eq '^-?[0-9]+$' || json_error "remaining_clicks must be an integer"
+if [ "$remaining_clicks" -lt 0 ]; then
+  remaining_clicks="-1"
+fi
+load_actions "$META_FILE"
+
+tmp="$(mktemp)"
+
+jq --argjson remaining_clicks "$remaining_clicks" '
+  .remaining_clicks = $remaining_clicks
+' "$META_FILE" > "$tmp"
+
+mv "$tmp" "$META_FILE"
+
+short_id="$(jq -r '.short_id // .short // ""' "$META_FILE")"
+append_action "$META_FILE" "set_clicks" "$actor" "$short_id"
+refresh_link_index "$publication_id" "$token"
+
+jq -n \
+  --arg publication_id "$publication_id" \
+  --arg token "$token" \
+  --argjson remaining_clicks "$remaining_clicks" \
+  --slurpfile meta "$META_FILE" '
+  {
+    status: "success",
+    message: [
+      {
+        publication_id: $publication_id,
+        token: $token,
+        operation: "set_clicks",
+        remaining_clicks: $remaining_clicks,
+        meta: $meta[0]
+      }
+    ]
+  }
+'

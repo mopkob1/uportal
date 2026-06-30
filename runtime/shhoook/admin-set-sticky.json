@@ -1,0 +1,21 @@
+{
+  "uri": "/admin/set-sticky",
+  "method": "POST",
+  "auth": "X-Token:CHANGE_ME_UPORTAL_ADMIN_SECRET",
+  "ttl": "15s",
+  "error": 500,
+  "query" : {
+    "user_token" : "notoken"
+  },
+  "body": {
+    "sticky": ""
+  },
+  "script": [
+    "bash",
+    "/usr/local/bin/admin-set-sticky.sh",
+    "{publication_id}",
+    "{token}",
+    "{sticky}",
+    "{user_token}"
+  ]
+}

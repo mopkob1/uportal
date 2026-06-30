@@ -1,0 +1,13 @@
+{
+  "uri": "/admin/unpublish",
+  "method": "POST",
+  "auth": "X-Token:CHANGE_ME_UPORTAL_ADMIN_SECRET",
+  "ttl": "30s",
+  "error": 500,
+  "script": [
+    "bash",
+    "/usr/local/bin/unpublish.sh",
+    "{publication_id}",
+    "{token}"
+  ]
+}

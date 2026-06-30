@@ -1,0 +1,17 @@
+{
+  "uri": "/tokens",
+  "method": "POST",
+  "auth": "X-Token:CHANGE_ME_UPORTAL_ADMIN_SECRET",
+  "ttl": "60s",
+  "error": 500,
+  "body": {
+    "token": "",
+    "payload_b64": ""
+  },
+  "script": [
+    "bash",
+    "/usr/local/bin/uportal-token-upsert.sh",
+    "{token}",
+    "{payload_b64}"
+  ]
+}

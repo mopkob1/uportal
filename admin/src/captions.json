@@ -1,0 +1,1320 @@
+{
+  "default": "en",
+  "en": {
+    "app": {
+      "mainNavigation": "Main sections",
+      "authRequired": "Enter authorization settings",
+      "tabs": {
+        "publications": "Publications",
+        "activity": "Statistics",
+        "dictionary": "Dictionary",
+        "users": "Users"
+      }
+    },
+    "auth": {
+      "title": "Authorization",
+      "serverUrl": "Server address",
+      "headerName": "Header name",
+      "token": "Token",
+      "clientUid": "Client UID",
+      "copyClientUid": "Copy UID",
+      "excludedUids": "Excluded UIDs",
+      "logout": "Logout",
+      "cancel": "Cancel",
+      "save": "Save",
+      "saved": "Authorization saved",
+      "uidCopied": "UID copied",
+      "reset": "Authorization reset"
+    },
+    "dictionaryEditor": {
+      "newTitle": "New dictionary item",
+      "editTitle": "Edit dictionary item",
+      "emptyIdPlaceholder": "leave empty for a new item",
+      "tagsLabel": "Tags",
+      "preLabel": "Pre",
+      "anchorLabel": "Anchor",
+      "postLabel": "Post",
+      "urlLabel": "URL",
+      "anchorPlaceholder": "link text",
+      "prePlaceholder": "Text before link",
+      "postPlaceholder": "Text after link",
+      "saveHint": "Saving calls POST /api/admin/dictionary. If id is empty, backend creates a new item.",
+      "saveHintBefore": "Saving calls",
+      "saveHintAfter": "If id is empty, backend creates a new item.",
+      "cancel": "Cancel",
+      "save": "Save"
+    },
+    "dictionaryPage": {
+      "title": "Dictionary",
+      "subtitle": "Manage template links for client and plugin insertion.",
+      "searchPlaceholder": "Search by anchor, url, tags, pre, post",
+      "refresh": "Refresh",
+      "addItem": "Add item",
+      "actions": "Actions",
+      "edit": "Edit",
+      "delete": "Delete",
+      "deleteConfirm": "Delete item {item}?",
+      "loaded": "Dictionary loaded: {count}",
+      "loadError": "Failed to load dictionary",
+      "saved": "Dictionary item saved",
+      "created": "Dictionary item created",
+      "saveError": "Failed to save dictionary item",
+      "deleted": "Dictionary item deleted",
+      "deleteError": "Failed to delete dictionary item"
+    },
+    "publications": {
+      "title": "Publications",
+      "subtitle": "Grouped by email subject, recipients and period.",
+      "searchLabel": "Search by subject / email",
+      "searchPlaceholder": "subject, email, anchor, token",
+      "dateRange": "Date range",
+      "period": "Period",
+      "accessTitle": "Link access",
+      "password": "Password",
+      "passwordSet": "set",
+      "passwordUnset": "not set",
+      "passwordPlaceholder": "new password, empty = remove password",
+      "save": "Save",
+      "columns": {
+        "campaignSubject": "Email subject",
+        "recipients": "Recipients",
+        "linksCount": "Links",
+        "types": "Types",
+        "campaignDate": "Date",
+        "linkDate": "Date",
+        "linkType": "Type",
+        "linkAnchor": "Anchor / link",
+        "linkShort": "Link",
+        "linkStatus": "Status",
+        "linkClicksLeft": "Clicks",
+        "linkFresh": "Freshness",
+        "linkFlags": "Actions"
+      },
+      "time": {
+        "seconds": "s",
+        "minutes": "m",
+        "hours": "h",
+        "days": "d",
+        "unknown": "+?"
+      },
+      "messages": {
+        "reportCopied": "Link report copied",
+        "reportLoadError": "Failed to load link statistics",
+        "reportTooltipEmpty": "No views",
+        "reportTooltipHint": "Click to load statistics and copy report",
+        "visitNew": "new",
+        "visitRepeat": "repeat",
+        "devices": "devices",
+        "deviceGuessHigh": "D+",
+        "deviceGuessLow": "D~",
+        "campaignNoLinks": "No links in this row",
+        "campaignStatsPartial": "Statistics partially loaded",
+        "campaignStatsLoaded": "Statistics loaded for all links",
+        "refreshLinksWarning": "Failed to refresh publication link state",
+        "loaded": "Publications loaded: {loaded}/{total}",
+        "tokenDisabled": "Token access is disabled or expired",
+        "loadError": "Failed to load publications",
+        "clicksSaved": "Clicks saved",
+        "clicksSaveError": "Failed to save clicks: {error}",
+        "freshSaved": "Freshness saved",
+        "freshSaveError": "Failed to save freshness: {error}",
+        "delaySaved": "Delay saved",
+        "delaySaveError": "Failed to save delay: {error}",
+        "linkPublished": "Link published",
+        "publishError": "Failed to publish link: {error}",
+        "alreadyPublished": "Link already published",
+        "unpublished": "Link unpublished",
+        "unpublishError": "Failed to unpublish link",
+        "stickySavedOn": "Sticky binding enabled",
+        "stickySavedOff": "Sticky binding disabled",
+        "stickySaveError": "Failed to save sticky binding: {error}",
+        "passwordSaved": "Password saved",
+        "passwordRemoved": "Password removed",
+        "passwordSaveError": "Failed to save password: {error}",
+        "draftDeleted": "Draft deleted",
+        "draftStorageWarning": "Draft deleted, but browser storage files were not cleaned: {error}",
+        "nothingToCopy": "Nothing to copy",
+        "copied": "Copied",
+        "statusChanged": "Status changed: {status}",
+        "statusChangeError": "Failed to change status: {error}"
+      },
+      "tooltips": {
+        "refresh": "Refresh",
+        "addLink": "Add link",
+        "deleteDraft": "Delete draft",
+        "passwordActive": "Password is set",
+        "passwordInactive": "No password",
+        "stickyActive": "Sticky binding enabled",
+        "stickyInactive": "Sticky binding disabled",
+        "copy": "Copy: {value}",
+        "copyShort": "Copy short link: {value}",
+        "copySource": "Copy original link: {value}",
+        "delay": "Delay: {value}"
+      },
+      "periods": {
+        "day": "Day",
+        "week": "Week",
+        "month": "Month",
+        "quarter": "Quarter",
+        "year": "Year"
+      },
+      "fallback": {
+        "noSubject": "No subject",
+        "noDate": "No date",
+        "unknownError": "unknown error",
+        "seconds": "{value} sec.",
+        "justNow": "just now",
+        "minutesAgo": "{value} min ago",
+        "hoursAgo": "{value} h ago",
+        "daysAgo": "{value} d ago"
+      }
+    },
+    "statistics": {
+      "refresh": "Load / refresh",
+      "copy": "Copy: {value}",
+      "events": "Events",
+      "linkTypes": "Link types",
+      "total": "Total",
+      "columns": {
+        "eventDate": "Event date",
+        "eventDateTip": "Click or link access time. Hover shows publication, subject and recipients.",
+        "type": "Type",
+        "typeTip": "Short link type marker: redirect, download, page or pixel.",
+        "preAnchorPost": "Pre-anchor-post",
+        "preAnchorPostTip": "Link text as pre + anchor + post.",
+        "publication": "Publication",
+        "publicationTip": "Publication identifier.",
+        "token": "Token",
+        "tokenTip": "Specific link token inside publication.",
+        "uid": "UID",
+        "uidTip": "Visitor identifier from uportal_uid cookie."
+      },
+      "details": {
+        "publishedAt": "Publication date: ",
+        "subject": "Subject: ",
+        "recipients": "Recipients: ",
+        "publishedAtTooltip": "Publication date and time",
+        "device": "Device: ",
+        "reason": "Reason: ",
+        "key": "Key: ",
+        "networkKey": "Network key: "
+      },
+      "log": {
+        "eventDate": "Event date: {value}",
+        "publishedAt": "Publication date: {value}",
+        "linkType": "Link type: {value}",
+        "publication": "Publication: {value}",
+        "token": "Token: {value}",
+        "device": "Device: {value}",
+        "subject": "Subject: {value}",
+        "recipients": "Recipients: {value}",
+        "link": "Link: {value}",
+        "events": "Events:"
+      },
+      "device": {
+        "unknownBadge": "D?",
+        "highBadge": "D+",
+        "lowBadge": "D-",
+        "unavailable": "device guess unavailable",
+        "notEnough": "Not enough data for device guess",
+        "high": "high confidence",
+        "low": "weak heuristic",
+        "unknownConfidence": "unknown confidence",
+        "cookie": "UID cookie exists",
+        "missing": "not enough data",
+        "unknownSource": "unknown source"
+      },
+      "linkTypesMap": {
+        "redirect": {
+          "code": "RD",
+          "label": "R",
+          "title": "Redirect"
+        },
+        "download": {
+          "code": "DL",
+          "label": "D",
+          "title": "Download"
+        },
+        "page": {
+          "code": "PG",
+          "label": "PG",
+          "title": "Page"
+        },
+        "pixel": {
+          "code": "PX",
+          "label": "P",
+          "title": "Pixel"
+        },
+        "unknown": "Unknown link type"
+      },
+      "eventsMap": {
+        "open": {
+          "label": "O",
+          "title": "Short link open"
+        },
+        "click": {
+          "label": "C",
+          "title": "Click or link transition"
+        },
+        "page_view": {
+          "label": "PV",
+          "title": "Page view"
+        },
+        "content": {
+          "label": "CT",
+          "title": "Content request"
+        },
+        "pixel": {
+          "label": "P",
+          "title": "Pixel trigger"
+        },
+        "download": {
+          "label": "D",
+          "title": "File download"
+        },
+        "unknown": "Unknown event"
+      },
+      "messages": {
+        "copied": "Copied",
+        "loaded": "Statistics loaded: {count}",
+        "loadError": "Failed to load statistics"
+      }
+    },
+    "users": {
+      "columns": {
+        "token": "Token",
+        "user": "User",
+        "plugin": "Plugin",
+        "web": "Interface",
+        "scope": "Scopes",
+        "status": "Status",
+        "tags": "Tags",
+        "actions": "Actions"
+      },
+      "texts": {
+        "adminAccessTitle": "Administrative access",
+        "adminHeaderLabel": "Header",
+        "adminHeaderPlaceholder": "X-Admin-Key",
+        "adminTokenLabel": "Super token",
+        "adminTokenPlaceholder": "super token",
+        "saveAdminAccess": "Save access",
+        "usersTitle": "Users / tokens",
+        "searchPlaceholder": "search by user, scopes, tags or token",
+        "deleteConfirm": "Delete token {token}?",
+        "confirmDelete": "Delete",
+        "cancelDelete": "Cancel",
+        "adminAccessSaved": "Administrative access saved",
+        "tokensLoaded": "Tokens loaded: {count}",
+        "tokensLoadError": "Failed to load tokens",
+        "tokenSaved": "Token saved",
+        "tokenCreated": "Token created",
+        "tokenSaveError": "Failed to save token",
+        "tokenDeleted": "Token deleted",
+        "tokenDeleteError": "Failed to delete token",
+        "statusChanged": "Status changed: {status}",
+        "statusChangeError": "Failed to change status",
+        "tokenCopied": "Token copied",
+        "clientSaved": "Client selected",
+        "clientSaveError": "Failed to select client",
+        "copyToken": "Copy: {token}",
+        "statusActive": "Active",
+        "statusHold": "Hold",
+        "statusRevoked": "Revoked",
+        "statusDisabled": "Disabled",
+        "scopeAdmin": "Admin",
+        "scopeUpload": "Upload",
+        "scopeActivity": "Statistics",
+        "scopeDictionary": "Dictionary"
+      },
+      "actions": {
+        "search": "Search",
+        "addUser": "Add user",
+        "edit": "Edit",
+        "editLocked": "Revoked tokens cannot be edited",
+        "delete": "Delete",
+        "noKnownClients": "Clients have not registered yet",
+        "registeredAt": "Registered: "
+      }
+    },
+    "userTokenModal": {
+      "createTitle": "New user",
+      "editTitle": "Edit user",
+      "tokenLabel": "Token",
+      "tokenPlaceholder": "empty = server generates token",
+      "userLabel": "User",
+      "userPlaceholder": "for example, demo",
+      "scopeLabel": "Scopes",
+      "statusLabel": "Status",
+      "tagsLabel": "Tags",
+      "statusActive": "Active",
+      "statusHold": "Hold",
+      "cancel": "Cancel",
+      "save": "Save"
+    },
+    "linkEditor": {
+      "titles": {
+        "createTitle": "New publication",
+        "editTitle": "Edit draft",
+        "advanced": "Advanced options",
+        "saveDraft": "Save draft",
+        "cancel": "Cancel"
+      },
+      "labels": {
+        "type": "Publication type",
+        "publicationId": "Publication ID",
+        "linkToken": "Link token",
+        "subject": "Publication subject",
+        "recipients": "Recipients",
+        "password": "Password",
+        "freshUntil": "Freshness",
+        "remainingClicks": "Click count",
+        "clicks": "Clicks",
+        "sticky": "Sticky",
+        "anchor": "Anchor",
+        "pre": "Pre",
+        "post": "Post",
+        "targetUrl": "Target URL",
+        "delay": "Delay, sec",
+        "previewImage": "Preview image",
+        "markdown": "Markdown",
+        "filename": "Download filename",
+        "title": "Title",
+        "description": "Description",
+        "language": "Template language"
+      },
+      "actions": {
+        "generate": "Generate",
+        "copy": "Copy",
+        "infinite": "Infinite",
+        "uploadFile": "Upload file",
+        "clearFile": "Clear file",
+        "uploadPreview": "Upload preview",
+        "clearPreview": "Clear preview",
+        "uploadPageFiles": "Upload page files"
+      },
+      "tabs": {
+        "markdown": "Markdown",
+        "preview": "Preview",
+        "files": "Ready files"
+      },
+      "placeholders": {
+        "newPublication": "New publication",
+        "newToken": "New token",
+        "selectPreviewImage": "Select an image from uploaded files"
+      },
+      "messages": {
+        "draftSaved": "Draft saved",
+        "passwordCopied": "Password copied",
+        "wrongTokenType": "Token belongs to another publication type",
+        "draftSaveError": "Failed to save draft: {error}",
+        "draftRestoreError": "Failed to restore draft files: {error}",
+        "unknownError": "unknown error"
+      },
+      "hints": {
+        "freshUntil": "Empty - infinite",
+        "remainingClicks": "How many times the link may trigger. -1 or empty - unlimited.",
+        "sticky": "Repeat access only from the same device identifier.",
+        "password": "Empty - access without password."
+      },
+      "types": {
+        "redirect": "Redirect",
+        "page": "Page",
+        "download": "Download",
+        "pixel": "Pixel"
+      }
+    },
+    "pageForm": {
+      "filesCount": "Files: {count}",
+      "tabs": {
+        "text": "Text",
+        "preview": "Preview",
+        "upload": "Upload"
+      },
+      "empty": "EMPTY"
+    },
+    "pixelForm": {
+      "note": "Pixel does not use preview, password, freshness or click count."
+    },
+    "common": {
+      "indexedDbUnavailable": "IndexedDB is unavailable"
+    }
+  },
+  "ru": {
+    "app": {
+      "mainNavigation": "Основные разделы",
+      "authRequired": "Введите параметры авторизации",
+      "tabs": {
+        "publications": "Публикации",
+        "activity": "Статистика",
+        "dictionary": "Словарь",
+        "users": "Пользователи"
+      }
+    },
+    "auth": {
+      "title": "Авторизация",
+      "serverUrl": "Адрес сервера",
+      "headerName": "Имя заголовка",
+      "token": "Токен",
+      "clientUid": "UID клиента",
+      "copyClientUid": "Скопировать UID",
+      "excludedUids": "Исключаемые UID",
+      "logout": "Выйти",
+      "cancel": "Отмена",
+      "save": "Сохранить",
+      "saved": "Авторизация сохранена",
+      "uidCopied": "UID скопирован",
+      "reset": "Авторизация сброшена"
+    },
+    "dictionaryEditor": {
+      "newTitle": "Новый элемент словаря",
+      "editTitle": "Редактировать элемент словаря",
+      "emptyIdPlaceholder": "оставить пустым для нового элемента",
+      "tagsLabel": "Тэги",
+      "preLabel": "Пре",
+      "anchorLabel": "Анкор",
+      "postLabel": "Пост",
+      "urlLabel": "URL",
+      "anchorPlaceholder": "текст ссылки",
+      "prePlaceholder": "Текст до ссылки",
+      "postPlaceholder": "Текст после ссылки",
+      "saveHint": "При сохранении вызывается POST /api/admin/dictionary. Если id пустой, backend создаёт новый элемент.",
+      "saveHintBefore": "При сохранении вызывается",
+      "saveHintAfter": "Если id пустой, backend создаёт новый элемент.",
+      "cancel": "Отмена",
+      "save": "Сохранить"
+    },
+    "dictionaryPage": {
+      "title": "Словарь",
+      "subtitle": "Управление шаблонными ссылками для вставки в клиенте и плагине.",
+      "searchPlaceholder": "Поиск по anchor, url, tags, pre, post",
+      "refresh": "Обновить",
+      "addItem": "Добавить элемент",
+      "actions": "Действия",
+      "edit": "Изменить",
+      "delete": "Удалить",
+      "deleteConfirm": "Удалить элемент {item}?",
+      "loaded": "Словарь загружен: {count}",
+      "loadError": "Не удалось загрузить словарь",
+      "saved": "Элемент словаря сохранён",
+      "created": "Элемент словаря создан",
+      "saveError": "Не удалось сохранить элемент словаря",
+      "deleted": "Элемент словаря удалён",
+      "deleteError": "Не удалось удалить элемент словаря"
+    },
+    "publications": {
+      "title": "Публикации",
+      "subtitle": "Группировка по теме письма, адресатам и периоду.",
+      "searchLabel": "Поиск по теме / email",
+      "searchPlaceholder": "тема, email, anchor, token",
+      "dateRange": "Диапазон дат",
+      "period": "Период",
+      "accessTitle": "Доступ ссылки",
+      "password": "Пароль",
+      "passwordSet": "установлен",
+      "passwordUnset": "не установлен",
+      "passwordPlaceholder": "новый пароль, пусто = снять пароль",
+      "save": "Сохранить",
+      "columns": {
+        "campaignSubject": "Тема письма",
+        "recipients": "Адресаты",
+        "linksCount": "Ссылок",
+        "types": "Типы",
+        "campaignDate": "Дата",
+        "linkDate": "Дата",
+        "linkType": "Тип",
+        "linkAnchor": "Анкор / ссылка",
+        "linkShort": "Ссылка",
+        "linkStatus": "Статус",
+        "linkClicksLeft": "Кликов",
+        "linkFresh": "Срок",
+        "linkFlags": "Действия"
+      },
+      "time": {
+        "seconds": "с",
+        "minutes": "м",
+        "hours": "ч",
+        "days": "д",
+        "unknown": "+?"
+      },
+      "messages": {
+        "reportCopied": "Отчёт по ссылке скопирован",
+        "reportLoadError": "Не удалось загрузить статистику по ссылке",
+        "reportTooltipEmpty": "Нет просмотров",
+        "reportTooltipHint": "Клик — загрузить статистику и скопировать отчёт",
+        "visitNew": "новый",
+        "visitRepeat": "повторный",
+        "devices": "устройств",
+        "deviceGuessHigh": "У+",
+        "deviceGuessLow": "У~",
+        "campaignNoLinks": "В строке нет ссылок",
+        "campaignStatsPartial": "Статистика загружена частично",
+        "campaignStatsLoaded": "Статистика загружена по всем ссылкам",
+        "refreshLinksWarning": "Не удалось обновить состояние ссылок публикации",
+        "loaded": "Публикации загружены: {loaded}/{total}",
+        "tokenDisabled": "Доступ по токену отключён или истёк",
+        "loadError": "Не удалось загрузить публикации",
+        "clicksSaved": "Клики сохранены",
+        "clicksSaveError": "Не удалось сохранить клики: {error}",
+        "freshSaved": "Срок сохранён",
+        "freshSaveError": "Не удалось сохранить срок: {error}",
+        "delaySaved": "Задержка сохранена",
+        "delaySaveError": "Не удалось сохранить задержку: {error}",
+        "linkPublished": "Ссылка опубликована",
+        "publishError": "Не удалось опубликовать ссылку: {error}",
+        "alreadyPublished": "Ссылка уже опубликована",
+        "unpublished": "Ссылка снята с публикации",
+        "unpublishError": "Не удалось снять ссылку с публикации",
+        "stickySavedOn": "Привязка включена",
+        "stickySavedOff": "Привязка выключена",
+        "stickySaveError": "Не удалось сохранить привязку: {error}",
+        "passwordSaved": "Пароль сохранён",
+        "passwordRemoved": "Пароль снят",
+        "passwordSaveError": "Не удалось сохранить пароль: {error}",
+        "draftDeleted": "Черновик удалён",
+        "draftStorageWarning": "Черновик удалён, но файлы браузерного хранилища не очищены: {error}",
+        "nothingToCopy": "Нечего копировать",
+        "copied": "Скопировано",
+        "statusChanged": "Статус изменён: {status}",
+        "statusChangeError": "Не удалось изменить статус: {error}"
+      },
+      "tooltips": {
+        "refresh": "Обновить",
+        "addLink": "Добавить ссылку",
+        "deleteDraft": "Удалить черновик",
+        "passwordActive": "Пароль установлен",
+        "passwordInactive": "Пароля нет",
+        "stickyActive": "Привязка включена",
+        "stickyInactive": "Привязка выключена",
+        "copy": "Скопировать: {value}",
+        "copyShort": "Скопировать короткую ссылку: {value}",
+        "copySource": "Скопировать оригинальную ссылку: {value}",
+        "delay": "Задержка: {value}"
+      },
+      "periods": {
+        "day": "День",
+        "week": "Неделя",
+        "month": "Месяц",
+        "quarter": "Квартал",
+        "year": "Год"
+      },
+      "fallback": {
+        "noSubject": "Без темы",
+        "noDate": "Без даты",
+        "unknownError": "неизвестная ошибка",
+        "seconds": "{value} сек.",
+        "justNow": "только что",
+        "minutesAgo": "{value} мин назад",
+        "hoursAgo": "{value} ч назад",
+        "daysAgo": "{value} дн назад"
+      }
+    },
+    "statistics": {
+      "refresh": "Загрузить / обновить",
+      "copy": "Скопировать: {value}",
+      "events": "События",
+      "linkTypes": "Типы ссылок",
+      "total": "Всего",
+      "columns": {
+        "eventDate": "Дата события",
+        "eventDateTip": "Время клика или обращения по ссылке. Наведение показывает публикацию, тему и адресатов.",
+        "type": "Тип",
+        "typeTip": "Короткое обозначение типа ссылки: редирект, скачивание, страница или пиксель.",
+        "preAnchorPost": "Пре-анкор-пост",
+        "preAnchorPostTip": "Текст ссылки в формате pre + anchor + post.",
+        "publication": "Публикация",
+        "publicationTip": "Идентификатор публикации.",
+        "token": "Токен",
+        "tokenTip": "Токен конкретной ссылки внутри публикации.",
+        "uid": "UID",
+        "uidTip": "Идентификатор посетителя из cookie uportal_uid."
+      },
+      "details": {
+        "publishedAt": "Дата публикации: ",
+        "subject": "Тема: ",
+        "recipients": "Адресаты: ",
+        "publishedAtTooltip": "Дата и время публикации",
+        "device": "Устройство: ",
+        "reason": "Основание: ",
+        "key": "Ключ: ",
+        "networkKey": "Сетевой ключ: "
+      },
+      "log": {
+        "eventDate": "Дата события: {value}",
+        "publishedAt": "Дата публикации: {value}",
+        "linkType": "Тип ссылки: {value}",
+        "publication": "Публикация: {value}",
+        "token": "Токен: {value}",
+        "device": "Устройство: {value}",
+        "subject": "Тема: {value}",
+        "recipients": "Адресаты: {value}",
+        "link": "Ссылка: {value}",
+        "events": "События:"
+      },
+      "device": {
+        "unknownBadge": "У?",
+        "highBadge": "У+",
+        "lowBadge": "У-",
+        "unavailable": "предположение недоступно",
+        "notEnough": "Недостаточно данных для предположения устройства",
+        "high": "высокая уверенность",
+        "low": "слабая эвристика",
+        "unknownConfidence": "уверенность неизвестна",
+        "cookie": "есть UID cookie",
+        "missing": "данных мало",
+        "unknownSource": "источник неизвестен"
+      },
+      "linkTypesMap": {
+        "redirect": {
+          "code": "РД",
+          "label": "Р",
+          "title": "Редирект"
+        },
+        "download": {
+          "code": "СК",
+          "label": "С",
+          "title": "Скачивание"
+        },
+        "page": {
+          "code": "СТ",
+          "label": "СТ",
+          "title": "Страница"
+        },
+        "pixel": {
+          "code": "ПИ",
+          "label": "П",
+          "title": "Пиксель"
+        },
+        "unknown": "Неизвестный тип ссылки"
+      },
+      "eventsMap": {
+        "open": {
+          "label": "О",
+          "title": "Открытие короткой ссылки"
+        },
+        "click": {
+          "label": "К",
+          "title": "Клик или переход по ссылке"
+        },
+        "page_view": {
+          "label": "ПС",
+          "title": "Просмотр страницы"
+        },
+        "content": {
+          "label": "КТ",
+          "title": "Запрос контента"
+        },
+        "pixel": {
+          "label": "П",
+          "title": "Срабатывание пикселя"
+        },
+        "download": {
+          "label": "С",
+          "title": "Скачивание файла"
+        },
+        "unknown": "Неизвестное событие"
+      },
+      "messages": {
+        "copied": "Скопировано",
+        "loaded": "Статистика загружена: {count}",
+        "loadError": "Не удалось загрузить статистику"
+      }
+    },
+    "users": {
+      "columns": {
+        "token": "Токен",
+        "user": "Пользователь",
+        "plugin": "Плагин",
+        "web": "Интерфейс",
+        "scope": "Права",
+        "status": "Статус",
+        "tags": "Метки",
+        "actions": "Действия"
+      },
+      "texts": {
+        "adminAccessTitle": "Административный доступ",
+        "adminHeaderLabel": "Заголовок",
+        "adminHeaderPlaceholder": "X-Admin-Key",
+        "adminTokenLabel": "Супер-токен",
+        "adminTokenPlaceholder": "супер-токен",
+        "saveAdminAccess": "Сохранить доступ",
+        "usersTitle": "Пользователи / токены",
+        "searchPlaceholder": "поиск по пользователю, правам, меткам или токену",
+        "deleteConfirm": "Удалить токен {token}?",
+        "confirmDelete": "Удалить",
+        "cancelDelete": "Отмена",
+        "adminAccessSaved": "Административный доступ сохранён",
+        "tokensLoaded": "Токены загружены: {count}",
+        "tokensLoadError": "Не удалось загрузить токены",
+        "tokenSaved": "Токен сохранён",
+        "tokenCreated": "Токен создан",
+        "tokenSaveError": "Не удалось сохранить токен",
+        "tokenDeleted": "Токен удалён",
+        "tokenDeleteError": "Не удалось удалить токен",
+        "statusChanged": "Статус изменён: {status}",
+        "statusChangeError": "Не удалось изменить статус",
+        "tokenCopied": "Токен скопирован",
+        "clientSaved": "Клиент выбран",
+        "clientSaveError": "Не удалось выбрать клиента",
+        "copyToken": "Скопировать: {token}",
+        "statusActive": "Активен",
+        "statusHold": "Пауза",
+        "statusRevoked": "Отозван",
+        "statusDisabled": "Отключен",
+        "scopeAdmin": "Админ",
+        "scopeUpload": "Загрузка",
+        "scopeActivity": "Статистика",
+        "scopeDictionary": "Словарь"
+      },
+      "actions": {
+        "search": "Найти",
+        "addUser": "Добавить пользователя",
+        "edit": "Изменить",
+        "editLocked": "Отозванные токены нельзя редактировать",
+        "delete": "Удалить",
+        "noKnownClients": "Клиенты еще не регистрировались",
+        "registeredAt": "Зарегистрирован: "
+      }
+    },
+    "userTokenModal": {
+      "createTitle": "Новый пользователь",
+      "editTitle": "Редактировать пользователя",
+      "tokenLabel": "Токен",
+      "tokenPlaceholder": "пусто = сервер сгенерирует токен",
+      "userLabel": "Пользователь",
+      "userPlaceholder": "например, demo",
+      "scopeLabel": "Права",
+      "statusLabel": "Статус",
+      "tagsLabel": "Метки",
+      "statusActive": "Активен",
+      "statusHold": "Пауза",
+      "cancel": "Отмена",
+      "save": "Сохранить"
+    },
+    "linkEditor": {
+      "titles": {
+        "createTitle": "Новая публикация",
+        "editTitle": "Редактирование черновика",
+        "advanced": "Дополнительные параметры",
+        "saveDraft": "Сохранить черновик",
+        "cancel": "Отмена"
+      },
+      "labels": {
+        "type": "Тип публикации",
+        "publicationId": "ID публикации",
+        "linkToken": "Token ссылки",
+        "subject": "Тема публикации",
+        "recipients": "Адресаты",
+        "password": "Пароль",
+        "freshUntil": "Свежесть",
+        "remainingClicks": "Количество кликов",
+        "clicks": "Клики",
+        "sticky": "Привязать",
+        "anchor": "Анкор",
+        "pre": "Пре",
+        "post": "Пост",
+        "targetUrl": "Целевая ссылка",
+        "delay": "Задержка, сек",
+        "previewImage": "Картинка превью",
+        "markdown": "Markdown",
+        "filename": "Имя файла при скачивании",
+        "title": "Заголовок",
+        "description": "Описание",
+        "language": "Язык шаблона"
+      },
+      "actions": {
+        "generate": "Сгенерировать",
+        "copy": "Скопировать",
+        "infinite": "Бесконечно",
+        "uploadFile": "Загрузить файл",
+        "clearFile": "Очистить файл",
+        "uploadPreview": "Загрузить превью",
+        "clearPreview": "Очистить превью",
+        "uploadPageFiles": "Загрузить файлы страницы"
+      },
+      "tabs": {
+        "markdown": "Markdown",
+        "preview": "Preview",
+        "files": "Готовые файлы"
+      },
+      "placeholders": {
+        "newPublication": "Новая публикация",
+        "newToken": "Новый token",
+        "selectPreviewImage": "Выберите картинку из загруженных файлов"
+      },
+      "messages": {
+        "draftSaved": "Черновик сохранён",
+        "passwordCopied": "Пароль скопирован",
+        "wrongTokenType": "Token относится к другому типу публикации",
+        "draftSaveError": "Не удалось сохранить черновик: {error}",
+        "draftRestoreError": "Не удалось восстановить файлы черновика: {error}",
+        "unknownError": "неизвестная ошибка"
+      },
+      "hints": {
+        "freshUntil": "Пусто - бесконечно",
+        "remainingClicks": "Сколько раз ссылка может сработать. -1 или пусто - без ограничения.",
+        "sticky": "Повторный доступ только с тем же идентификатором устройства.",
+        "password": "Пусто - доступ без пароля."
+      },
+      "types": {
+        "redirect": "Редирект",
+        "page": "Страница",
+        "download": "Скачивание",
+        "pixel": "Пиксель"
+      }
+    },
+    "pageForm": {
+      "filesCount": "Файлов: {count}",
+      "tabs": {
+        "text": "Текст",
+        "preview": "Просмотр",
+        "upload": "Загрузка"
+      },
+      "empty": "EMPTY"
+    },
+    "pixelForm": {
+      "note": "Pixel не использует превью, пароль, свежесть и количество кликов."
+    },
+    "common": {
+      "indexedDbUnavailable": "IndexedDB недоступен"
+    }
+  },
+  "es": {
+    "app": {
+      "mainNavigation": "Secciones principales",
+      "authRequired": "Introduzca los datos de autorización",
+      "tabs": {
+        "publications": "Publicaciones",
+        "activity": "Estadísticas",
+        "dictionary": "Diccionario",
+        "users": "Usuarios"
+      }
+    },
+    "auth": {
+      "title": "Autorización",
+      "serverUrl": "Dirección del servidor",
+      "headerName": "Nombre del encabezado",
+      "token": "Token",
+      "clientUid": "UID del cliente",
+      "copyClientUid": "Copiar UID",
+      "excludedUids": "UID excluidos",
+      "logout": "Salir",
+      "cancel": "Cancelar",
+      "save": "Guardar",
+      "saved": "Autorización guardada",
+      "uidCopied": "UID copiado",
+      "reset": "Autorización restablecida"
+    },
+    "dictionaryEditor": {
+      "newTitle": "Nuevo elemento del diccionario",
+      "editTitle": "Editar elemento del diccionario",
+      "emptyIdPlaceholder": "dejar vacío para un elemento nuevo",
+      "tagsLabel": "Etiquetas",
+      "preLabel": "Pre",
+      "anchorLabel": "Ancla",
+      "postLabel": "Post",
+      "urlLabel": "URL",
+      "anchorPlaceholder": "texto del enlace",
+      "prePlaceholder": "Texto antes del enlace",
+      "postPlaceholder": "Texto después del enlace",
+      "saveHint": "Guardar llama a POST /api/admin/dictionary. Si id está vacío, backend crea un elemento nuevo.",
+      "saveHintBefore": "Guardar llama a",
+      "saveHintAfter": "Si id está vacío, backend crea un elemento nuevo.",
+      "cancel": "Cancelar",
+      "save": "Guardar"
+    },
+    "dictionaryPage": {
+      "title": "Diccionario",
+      "subtitle": "Gestión de enlaces de plantilla para insertar en el cliente y el plugin.",
+      "searchPlaceholder": "Buscar por anchor, url, tags, pre, post",
+      "refresh": "Actualizar",
+      "addItem": "Añadir elemento",
+      "actions": "Acciones",
+      "edit": "Editar",
+      "delete": "Eliminar",
+      "deleteConfirm": "¿Eliminar elemento {item}?",
+      "loaded": "Diccionario cargado: {count}",
+      "loadError": "No se pudo cargar el diccionario",
+      "saved": "Elemento del diccionario guardado",
+      "created": "Elemento del diccionario creado",
+      "saveError": "No se pudo guardar el elemento del diccionario",
+      "deleted": "Elemento del diccionario eliminado",
+      "deleteError": "No se pudo eliminar el elemento del diccionario"
+    },
+    "publications": {
+      "title": "Publicaciones",
+      "subtitle": "Agrupadas por asunto del email, destinatarios y periodo.",
+      "searchLabel": "Buscar por asunto / email",
+      "searchPlaceholder": "asunto, email, anchor, token",
+      "dateRange": "Rango de fechas",
+      "period": "Periodo",
+      "accessTitle": "Acceso al enlace",
+      "password": "Contraseña",
+      "passwordSet": "establecida",
+      "passwordUnset": "no establecida",
+      "passwordPlaceholder": "nueva contraseña, vacío = quitar contraseña",
+      "save": "Guardar",
+      "columns": {
+        "campaignSubject": "Asunto del email",
+        "recipients": "Destinatarios",
+        "linksCount": "Enlaces",
+        "types": "Tipos",
+        "campaignDate": "Fecha",
+        "linkDate": "Fecha",
+        "linkType": "Tipo",
+        "linkAnchor": "Anchor / enlace",
+        "linkShort": "Enlace",
+        "linkStatus": "Estado",
+        "linkClicksLeft": "Clics",
+        "linkFresh": "Vigencia",
+        "linkFlags": "Acciones"
+      },
+      "time": {
+        "seconds": "s",
+        "minutes": "m",
+        "hours": "h",
+        "days": "d",
+        "unknown": "+?"
+      },
+      "messages": {
+        "reportCopied": "Informe del enlace copiado",
+        "reportLoadError": "No se pudo cargar la estadística del enlace",
+        "reportTooltipEmpty": "Sin vistas",
+        "reportTooltipHint": "Clic para cargar estadísticas y copiar informe",
+        "visitNew": "nuevo",
+        "visitRepeat": "repetido",
+        "devices": "dispositivos",
+        "deviceGuessHigh": "D+",
+        "deviceGuessLow": "D~",
+        "campaignNoLinks": "No hay enlaces en esta fila",
+        "campaignStatsPartial": "Estadísticas cargadas parcialmente",
+        "campaignStatsLoaded": "Estadísticas cargadas para todos los enlaces",
+        "refreshLinksWarning": "No se pudo actualizar el estado de enlaces de la publicación",
+        "loaded": "Publicaciones cargadas: {loaded}/{total}",
+        "tokenDisabled": "El acceso por token está desactivado o expiró",
+        "loadError": "No se pudieron cargar las publicaciones",
+        "clicksSaved": "Clics guardados",
+        "clicksSaveError": "No se pudieron guardar los clics: {error}",
+        "freshSaved": "Vigencia guardada",
+        "freshSaveError": "No se pudo guardar la vigencia: {error}",
+        "delaySaved": "Retraso guardado",
+        "delaySaveError": "No se pudo guardar el retraso: {error}",
+        "linkPublished": "Enlace publicado",
+        "publishError": "No se pudo publicar el enlace: {error}",
+        "alreadyPublished": "El enlace ya está publicado",
+        "unpublished": "Enlace retirado de publicación",
+        "unpublishError": "No se pudo retirar el enlace",
+        "stickySavedOn": "Vinculación activada",
+        "stickySavedOff": "Vinculación desactivada",
+        "stickySaveError": "No se pudo guardar la vinculación: {error}",
+        "passwordSaved": "Contraseña guardada",
+        "passwordRemoved": "Contraseña quitada",
+        "passwordSaveError": "No se pudo guardar la contraseña: {error}",
+        "draftDeleted": "Borrador eliminado",
+        "draftStorageWarning": "Borrador eliminado, pero no se limpiaron los archivos del almacenamiento del navegador: {error}",
+        "nothingToCopy": "Nada que copiar",
+        "copied": "Copiado",
+        "statusChanged": "Estado cambiado: {status}",
+        "statusChangeError": "No se pudo cambiar el estado: {error}"
+      },
+      "tooltips": {
+        "refresh": "Actualizar",
+        "addLink": "Añadir enlace",
+        "deleteDraft": "Eliminar borrador",
+        "passwordActive": "Contraseña establecida",
+        "passwordInactive": "Sin contraseña",
+        "stickyActive": "Vinculación activada",
+        "stickyInactive": "Vinculación desactivada",
+        "copy": "Copiar: {value}",
+        "copyShort": "Copiar enlace corto: {value}",
+        "copySource": "Copiar enlace original: {value}",
+        "delay": "Retraso: {value}"
+      },
+      "periods": {
+        "day": "Día",
+        "week": "Semana",
+        "month": "Mes",
+        "quarter": "Trimestre",
+        "year": "Año"
+      },
+      "fallback": {
+        "noSubject": "Sin asunto",
+        "noDate": "Sin fecha",
+        "unknownError": "error desconocido",
+        "seconds": "{value} seg.",
+        "justNow": "ahora mismo",
+        "minutesAgo": "hace {value} min",
+        "hoursAgo": "hace {value} h",
+        "daysAgo": "hace {value} d"
+      }
+    },
+    "statistics": {
+      "refresh": "Cargar / actualizar",
+      "copy": "Copiar: {value}",
+      "events": "Eventos",
+      "linkTypes": "Tipos de enlace",
+      "total": "Total",
+      "columns": {
+        "eventDate": "Fecha del evento",
+        "eventDateTip": "Hora del clic o acceso al enlace. Al pasar el cursor muestra publicación, asunto y destinatarios.",
+        "type": "Tipo",
+        "typeTip": "Marca corta del tipo de enlace: redirect, download, page o pixel.",
+        "preAnchorPost": "Pre-anchor-post",
+        "preAnchorPostTip": "Texto del enlace como pre + anchor + post.",
+        "publication": "Publicación",
+        "publicationTip": "Identificador de publicación.",
+        "token": "Token",
+        "tokenTip": "Token del enlace concreto dentro de la publicación.",
+        "uid": "UID",
+        "uidTip": "Identificador del visitante desde la cookie uportal_uid."
+      },
+      "details": {
+        "publishedAt": "Fecha de publicación: ",
+        "subject": "Asunto: ",
+        "recipients": "Destinatarios: ",
+        "publishedAtTooltip": "Fecha y hora de publicación",
+        "device": "Dispositivo: ",
+        "reason": "Base: ",
+        "key": "Clave: ",
+        "networkKey": "Clave de red: "
+      },
+      "log": {
+        "eventDate": "Fecha del evento: {value}",
+        "publishedAt": "Fecha de publicación: {value}",
+        "linkType": "Tipo de enlace: {value}",
+        "publication": "Publicación: {value}",
+        "token": "Token: {value}",
+        "device": "Dispositivo: {value}",
+        "subject": "Asunto: {value}",
+        "recipients": "Destinatarios: {value}",
+        "link": "Enlace: {value}",
+        "events": "Eventos:"
+      },
+      "device": {
+        "unknownBadge": "D?",
+        "highBadge": "D+",
+        "lowBadge": "D-",
+        "unavailable": "suposición no disponible",
+        "notEnough": "No hay datos suficientes para suponer el dispositivo",
+        "high": "alta confianza",
+        "low": "heurística débil",
+        "unknownConfidence": "confianza desconocida",
+        "cookie": "existe cookie UID",
+        "missing": "pocos datos",
+        "unknownSource": "fuente desconocida"
+      },
+      "linkTypesMap": {
+        "redirect": {
+          "code": "RD",
+          "label": "R",
+          "title": "Redirect"
+        },
+        "download": {
+          "code": "DL",
+          "label": "D",
+          "title": "Descarga"
+        },
+        "page": {
+          "code": "PG",
+          "label": "PG",
+          "title": "Página"
+        },
+        "pixel": {
+          "code": "PX",
+          "label": "P",
+          "title": "Pixel"
+        },
+        "unknown": "Tipo de enlace desconocido"
+      },
+      "eventsMap": {
+        "open": {
+          "label": "A",
+          "title": "Apertura del enlace corto"
+        },
+        "click": {
+          "label": "C",
+          "title": "Clic o transición por enlace"
+        },
+        "page_view": {
+          "label": "PV",
+          "title": "Vista de página"
+        },
+        "content": {
+          "label": "CT",
+          "title": "Solicitud de contenido"
+        },
+        "pixel": {
+          "label": "P",
+          "title": "Activación del pixel"
+        },
+        "download": {
+          "label": "D",
+          "title": "Descarga de archivo"
+        },
+        "unknown": "Evento desconocido"
+      },
+      "messages": {
+        "copied": "Copiado",
+        "loaded": "Estadísticas cargadas: {count}",
+        "loadError": "No se pudieron cargar las estadísticas"
+      }
+    },
+    "users": {
+      "columns": {
+        "token": "Token",
+        "user": "Usuario",
+        "plugin": "Plugin",
+        "web": "Interfaz",
+        "scope": "Permisos",
+        "status": "Estado",
+        "tags": "Etiquetas",
+        "actions": "Acciones"
+      },
+      "texts": {
+        "adminAccessTitle": "Acceso administrativo",
+        "adminHeaderLabel": "Encabezado",
+        "adminHeaderPlaceholder": "X-Admin-Key",
+        "adminTokenLabel": "Super token",
+        "adminTokenPlaceholder": "super token",
+        "saveAdminAccess": "Guardar acceso",
+        "usersTitle": "Usuarios / tokens",
+        "searchPlaceholder": "buscar por usuario, permisos, etiquetas o token",
+        "deleteConfirm": "¿Eliminar token {token}?",
+        "confirmDelete": "Eliminar",
+        "cancelDelete": "Cancelar",
+        "adminAccessSaved": "Acceso administrativo guardado",
+        "tokensLoaded": "Tokens cargados: {count}",
+        "tokensLoadError": "No se pudieron cargar los tokens",
+        "tokenSaved": "Token guardado",
+        "tokenCreated": "Token creado",
+        "tokenSaveError": "No se pudo guardar el token",
+        "tokenDeleted": "Token eliminado",
+        "tokenDeleteError": "No se pudo eliminar el token",
+        "statusChanged": "Estado cambiado: {status}",
+        "statusChangeError": "No se pudo cambiar el estado",
+        "tokenCopied": "Token copiado",
+        "clientSaved": "Cliente seleccionado",
+        "clientSaveError": "No se pudo seleccionar el cliente",
+        "copyToken": "Copiar: {token}",
+        "statusActive": "Activo",
+        "statusHold": "Pausa",
+        "statusRevoked": "Revocado",
+        "statusDisabled": "Desactivado",
+        "scopeAdmin": "Admin",
+        "scopeUpload": "Carga",
+        "scopeActivity": "Estadísticas",
+        "scopeDictionary": "Diccionario"
+      },
+      "actions": {
+        "search": "Buscar",
+        "addUser": "Añadir usuario",
+        "edit": "Editar",
+        "editLocked": "Los tokens revocados no se pueden editar",
+        "delete": "Eliminar",
+        "noKnownClients": "Los clientes aún no se han registrado",
+        "registeredAt": "Registrado: "
+      }
+    },
+    "userTokenModal": {
+      "createTitle": "Nuevo usuario",
+      "editTitle": "Editar usuario",
+      "tokenLabel": "Token",
+      "tokenPlaceholder": "vacío = el servidor genera token",
+      "userLabel": "Usuario",
+      "userPlaceholder": "por ejemplo, demo",
+      "scopeLabel": "Permisos",
+      "statusLabel": "Estado",
+      "tagsLabel": "Etiquetas",
+      "statusActive": "Activo",
+      "statusHold": "Pausa",
+      "cancel": "Cancelar",
+      "save": "Guardar"
+    },
+    "linkEditor": {
+      "titles": {
+        "createTitle": "Nueva publicación",
+        "editTitle": "Editar borrador",
+        "advanced": "Opciones avanzadas",
+        "saveDraft": "Guardar borrador",
+        "cancel": "Cancelar"
+      },
+      "labels": {
+        "type": "Tipo de publicación",
+        "publicationId": "ID de publicación",
+        "linkToken": "Token del enlace",
+        "subject": "Asunto de la publicación",
+        "recipients": "Destinatarios",
+        "password": "Contraseña",
+        "freshUntil": "Vigencia",
+        "remainingClicks": "Número de clics",
+        "clicks": "Clics",
+        "sticky": "Vincular",
+        "anchor": "Anchor",
+        "pre": "Pre",
+        "post": "Post",
+        "targetUrl": "URL destino",
+        "delay": "Retraso, seg",
+        "previewImage": "Imagen de vista previa",
+        "markdown": "Markdown",
+        "filename": "Nombre de archivo al descargar",
+        "title": "Título",
+        "description": "Descripción",
+        "language": "Idioma de plantilla"
+      },
+      "actions": {
+        "generate": "Generar",
+        "copy": "Copiar",
+        "infinite": "Infinito",
+        "uploadFile": "Subir archivo",
+        "clearFile": "Limpiar archivo",
+        "uploadPreview": "Subir preview",
+        "clearPreview": "Limpiar preview",
+        "uploadPageFiles": "Subir archivos de página"
+      },
+      "tabs": {
+        "markdown": "Markdown",
+        "preview": "Preview",
+        "files": "Archivos listos"
+      },
+      "placeholders": {
+        "newPublication": "Nueva publicación",
+        "newToken": "Nuevo token",
+        "selectPreviewImage": "Seleccione una imagen de los archivos subidos"
+      },
+      "messages": {
+        "draftSaved": "Borrador guardado",
+        "passwordCopied": "Contraseña copiada",
+        "wrongTokenType": "El token pertenece a otro tipo de publicación",
+        "draftSaveError": "No se pudo guardar el borrador: {error}",
+        "draftRestoreError": "No se pudieron restaurar los archivos del borrador: {error}",
+        "unknownError": "error desconocido"
+      },
+      "hints": {
+        "freshUntil": "Vacío - infinito",
+        "remainingClicks": "Cuántas veces puede activarse el enlace. -1 o vacío - sin límite.",
+        "sticky": "Acceso repetido solo con el mismo identificador de dispositivo.",
+        "password": "Vacío - acceso sin contraseña."
+      },
+      "types": {
+        "redirect": "Redirect",
+        "page": "Página",
+        "download": "Descarga",
+        "pixel": "Pixel"
+      }
+    },
+    "pageForm": {
+      "filesCount": "Archivos: {count}",
+      "tabs": {
+        "text": "Texto",
+        "preview": "Vista previa",
+        "upload": "Carga"
+      },
+      "empty": "EMPTY"
+    },
+    "pixelForm": {
+      "note": "Pixel no usa preview, contraseña, vigencia ni número de clics."
+    },
+    "common": {
+      "indexedDbUnavailable": "IndexedDB no está disponible"
+    }
+  }
+}

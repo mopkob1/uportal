@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="{{LANG}}">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+
+  <title>{{TITLE}}</title>
+
+  <meta property="og:type" content="website"/>
+  <meta property="og:title" content="{{TITLE}}"/>
+  <meta property="og:description" content="{{DESCRIPTION}}"/>
+  <meta name="robots" content="noindex,nofollow">
+
+  <link rel="stylesheet" href="/shell.tailwind.css">
+  <link rel="stylesheet" href="/md.css">
+  <base href="/assets/{{PUBLICATION_ID}}/{{TOKEN}}/">
+  <link rel="stylesheet" href="{{STYLE_URL}}" onerror="this.remove()">
+</head>
+<body class="page-shell">
+
+  <main class="page-shell-wrap">
+    <div class="page-shell-card">
+
+      <div id="loader" class="text-sm text-zinc-500">
+        {{LOADING}}
+      </div>
+
+      <div id="app" class="md-content hidden"></div>
+
+      <div id="error" class="hidden text-red-600">
+        <h1 class="text-xl font-semibold">{{ACCESS_DENIED}}</h1>
+        <p class="mt-2 text-sm text-zinc-500">{{LINK_EXPIRED}}</p>
+      </div>
+
+    </div>
+  </main>
+
+  <script>
+    const PUB = "{{PUBLICATION_ID}}";
+    const TOKEN = "{{TOKEN}}";
+    const PAGE_VIEW_URL = {{PAGE_VIEW_URL_JS}};
+    const CONTENT_URL = {{CONTENT_URL_JS}};
+
+    const elLoader = document.getElementById('loader');
+    const elApp = document.getElementById('app');
+    const elError = document.getElementById('error');
+
+    function showError() {
+      elLoader.classList.add('hidden');
+      elApp.classList.add('hidden');
+      elError.classList.remove('hidden');
+    }
+
+    function showContent(html) {
+      elLoader.classList.add('hidden');
+      elError.classList.add('hidden');
+      elApp.innerHTML = html;
+      elApp.classList.remove('hidden');
+    }
+
+    async function ping(url) {
+      if (!url) return;
+      try {
+        await fetch(url, {
+          method: 'POST',
+          credentials: 'same-origin',
+          cache: 'no-store'
+        });
+      } catch {}
+    }
+
+    async function loadContent() {
+      try {
+        const r = await fetch(`/api/page-content/${PUB}/${TOKEN}`, {
+          credentials: 'same-origin',
+          cache: 'no-store'
+        });
+
+        if (!r.ok) {
+          showError();
+          return;
+        }
+
+        const html = await r.text();
+        showContent(html);
+
+        await ping(CONTENT_URL);
+      } catch (e) {
+        showError();
+      }
+    }
+
+    (async () => {
+      await ping(PAGE_VIEW_URL);
+      await loadContent();
+    })();
+  </script>
+
+</body>
+</html>

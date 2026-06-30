@@ -1,0 +1,50 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Config (override via /etc/default/shhoook)
+CONFIG_DIR="${CONFIG_DIR:-/etc/shhoook/conf}"
+WAIT_IFACE="${WAIT_IFACE:-tun0}"          # tailscale0 / wg0 / tun0
+PORT="${PORT:-8080}"
+WAIT_IP="${WAIT_IP:-}"                   # optional exact IPv4
+WAIT_V4_PREFIX="${WAIT_V4_PREFIX:-}"     # optional prefix like "10.8." or "100.64."
+MAX_WAIT="${MAX_WAIT:-60}"
+
+pick_ip() {
+  local ips picked x
+  ips="$(ip -4 -o addr show dev "$WAIT_IFACE" | awk '{print $4}' | cut -d/ -f1)"
+  picked=""
+
+  if [ -n "$WAIT_IP" ]; then
+    for x in $ips; do
+      if [ "$x" = "$WAIT_IP" ]; then picked="$x"; break; fi
+    done
+  elif [ -n "$WAIT_V4_PREFIX" ]; then
+    for x in $ips; do
+      case "$x" in
+        ${WAIT_V4_PREFIX}*) picked="$x"; break;;
+      esac
+    done
+  else
+    for x in $ips; do picked="$x"; break; done
+  fi
+
+  echo "$picked"
+}
+
+i=0
+while [ $i -lt "$MAX_WAIT" ]; do
+  if ip link show dev "$WAIT_IFACE" >/dev/null 2>&1; then
+    ip4="$(pick_ip || true)"
+    if [ -n "$ip4" ]; then
+      export LISTEN_ADDR="${ip4}:${PORT}"
+      export CONFIG_DIR
+      echo "Starting shhoook with LISTEN_ADDR=${LISTEN_ADDR} (from ${WAIT_IFACE})"
+      exec /usr/local/bin/shhoook
+    fi
+  fi
+  i=$((i+1))
+  sleep 1
+done
+
+echo "Interface/IP not ready: iface=${WAIT_IFACE} wait_ip=${WAIT_IP:-any} prefix=${WAIT_V4_PREFIX:-any}" >&2
+exit 1

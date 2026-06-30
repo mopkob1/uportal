@@ -1,0 +1,21 @@
+{
+  "uri": "/admin/set-freshness",
+  "method": "POST",
+  "auth": "X-Token:CHANGE_ME_UPORTAL_ADMIN_SECRET",
+  "ttl": "15s",
+  "error": 500,
+  "query" : {
+    "user_token" : "notoken"
+  },
+  "body": {
+    "fresh_until": ""
+  },
+  "script": [
+    "bash",
+    "/usr/local/bin/admin-set-freshness.sh",
+    "{publication_id}",
+    "{token}",
+    "{fresh_until}",
+    "{user_token}"
+  ]
+}

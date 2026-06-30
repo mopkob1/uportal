@@ -1,0 +1,21 @@
+{
+  "uri": "/admin/set-clicks",
+  "method": "POST",
+  "auth": "X-Token:CHANGE_ME_UPORTAL_ADMIN_SECRET",
+  "ttl": "15s",
+  "error": 500,
+  "query" : {
+    "user_token" : "notoken"
+  },
+  "body": {
+    "remaining_clicks": "-1"
+  },
+  "script": [
+    "bash",
+    "/usr/local/bin/admin-set-clicks.sh",
+    "{publication_id}",
+    "{token}",
+    "{remaining_clicks}",
+    "{user_token}"
+  ]
+}

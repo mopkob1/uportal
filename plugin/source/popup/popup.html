@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>UPORTAL links</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <header>
+    <div class="brand">
+      <strong>UPORTAL</strong>
+      <span id="versionBadge" class="version-badge"></span>
+    </div>
+    <div class="top-controls">
+      <input id="tagFilter" type="search" placeholder="tags...">
+      <button id="refresh" type="button" title="Refresh dictionary">↻</button>
+    </div>
+  </header>
+
+  <section class="send-mode">
+    <label>
+      <input id="noUportal" type="checkbox">
+      <span id="noUportalLabel">Send this email without UPORTAL</span>
+    </label>
+    <button id="copyClientUid" class="uid-copy" type="button" title="Copy plugin UID">UID</button>
+  </section>
+
+  <main>
+    <div id="content" class="list">
+      <div class="muted">Loading dictionary...</div>
+    </div>
+  </main>
+
+  <footer>
+    <button id="insertSelected" type="button">Insert selected</button>
+  </footer>
+
+  <script src="../captions.js"></script>
+  <script src="popup.js"></script>
+</body>
+</html>

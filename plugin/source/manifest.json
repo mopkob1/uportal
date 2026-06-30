@@ -1,0 +1,39 @@
+{
+  "manifest_version": 2,
+  "name": "__MSG_extensionName__",
+  "description": "__MSG_extensionDescription__",
+  "default_locale": "en",
+  "version": "0.2.4",
+  "author": "UPORTAL",
+  "applications": {
+    "gecko": {
+      "id": "uportal-link-inserter@1qr.org",
+      "strict_min_version": "102.0"
+    }
+  },
+  "permissions": [
+    "storage",
+    "tabs",
+    "compose",
+    "compose.send",
+    "<all_urls>"
+  ],
+  "background": {
+    "scripts": [
+      "captions.js",
+      "background.js"
+    ]
+  },
+  "compose_action": {
+    "default_title": "__MSG_defaultTitle__",
+    "default_popup": "popup/popup.html"
+  },
+  "options_ui": {
+    "page": "options/options.html",
+    "browser_style": true,
+    "open_in_tab": true
+  },
+  "web_accessible_resources": [
+    "captions.json"
+  ]
+}

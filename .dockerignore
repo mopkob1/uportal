@@ -1,0 +1,10 @@
+.git
+.idea
+.agents
+.codex
+admin/node_modules
+node_modules
+**/.DS_Store
+**/*.log
+tmp
+data

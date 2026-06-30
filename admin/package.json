@@ -1,0 +1,23 @@
+{
+  "name": "uportal-admin",
+  "private": true,
+  "scripts": {
+    "dev": "vite --host 0.0.0.0 --port 5173",
+    "build": "vite build --base=/ui/",
+    "preview": "vite preview --host 0.0.0.0 --port 4173"
+  },
+  "dependencies": {
+    "@lucide/vue": "^1.16.0",
+    "@vicons/ionicons5": "^0.13.0",
+    "axios": "^1.6.0",
+    "lucide-vue-next": "^1.0.0",
+    "markdown-it": "^14.2.0",
+    "naive-ui": "^2.40.0",
+    "vue": "^3.4.0",
+    "vuex": "^4.1.0"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^5.0.0",
+    "vite": "^5.0.0"
+  }
+}

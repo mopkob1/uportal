@@ -1,0 +1,9 @@
+{
+  "about": "List configured endpoints",
+  "uri": "/catalog",
+  "method": "GET",
+  "auth": "X-Token:CHANGE_ME_UPORTAL_ADMIN_SECRET",
+  "ttl": "5s",
+  "error": 500,
+  "script": ["/usr/local/bin/shhoook-catalog.sh"]
+}

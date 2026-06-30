@@ -1,0 +1,21 @@
+{
+  "uri": "/admin/set-status",
+  "method": "POST",
+  "auth": "X-Token:CHANGE_ME_UPORTAL_ADMIN_SECRET",
+  "ttl": "15s",
+  "error": 500,
+  "query" : {
+    "user_token" : "notoken"
+  },
+  "body": {
+    "status": "active"
+  },
+  "script": [
+    "bash",
+    "/usr/local/bin/admin-set-status.sh",
+    "{publication_id}",
+    "{token}",
+    "{status}",
+    "{user_token}"
+  ]
+}

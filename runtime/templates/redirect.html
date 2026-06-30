@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="{{LANG}}">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>{{TITLE}}</title>
+  <meta property="og:type" content="website"/>
+  <meta property="og:title" content="{{TITLE}}"/>
+  <meta property="og:description" content="{{DESCRIPTION}}"/>
+  <meta property="og:image" content="{{IMAGE}}"/>
+  <style>
+    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;margin:24px;background:#f7f7f8;color:#111}
+    .wrap{max-width:760px;margin:0 auto;background:#fff;border:1px solid #e5e7eb;border-radius:16px;padding:24px}
+    .muted{opacity:.75}.btn{display:inline-block;padding:10px 16px;border-radius:12px;border:1px solid #d1d5db;text-decoration:none;color:inherit}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>{{TITLE}}</h1>
+    <p class="muted">{{DESCRIPTION}}</p>
+    <p>{{REDIRECT_STARTS_IN}} <b id="sec">{{DELAY}}</b> {{SECONDS_LABEL}}</p>
+    <p><a class="btn" id="manual" href="{{TARGET_URL}}">{{GO_NOW}}</a></p>
+  </div>
+
+  <script>
+    const TARGET_URL = "{{TARGET_URL}}";
+    const OPEN_URL = {{OPEN_URL_JS}};
+    const CLICK_URL = {{CLICK_URL_JS}};
+    let s = parseInt("{{DELAY}}", 10) || 0;
+
+    async function ping(url) {
+      if (!url) return;
+      try {
+        await fetch(url, {
+          method: 'POST',
+          credentials: 'same-origin',
+          cache: 'no-store'
+        });
+      } catch {}
+    }
+
+    async function go() {
+      await ping(CLICK_URL);
+      window.location.href = TARGET_URL;
+    }
+
+    (async () => {
+      await ping(OPEN_URL);
+
+      const btn = document.getElementById('manual');
+      btn.addEventListener('click', async (ev) => {
+        ev.preventDefault();
+        await go();
+      });
+
+      const el = document.getElementById('sec');
+      el.textContent = String(s);
+
+      if (s === 0) {
+        await go();
+        return;
+      }
+
+      const t = setInterval(async () => {
+        s -= 1;
+        el.textContent = String(Math.max(s, 0));
+        if (s <= 0) {
+          clearInterval(t);
+          await go();
+        }
+      }, 1000);
+    })();
+  </script>
+</body>
+</html>

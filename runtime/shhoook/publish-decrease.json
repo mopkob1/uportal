@@ -1,0 +1,21 @@
+{
+  "uri": "/admin/decrease-click",
+  "method": "POST",
+  "auth": "X-Token:CHANGE_ME_UPORTAL_ADMIN_SECRET",
+  "ttl": "15s",
+  "error": 500,
+  "query" : {
+    "user_token" : "notoken"
+  },
+  "body": {
+    "amount": "1"
+  },
+  "script": [
+    "bash",
+    "/usr/local/bin/admin-decrease-click.sh",
+    "{publication_id}",
+    "{token}",
+    "{amount}",
+    "{user_token}"
+  ]
+}

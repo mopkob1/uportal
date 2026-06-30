@@ -1,0 +1,11 @@
+{
+  "extensionName": {
+    "message": "UPORTAL Link Inserter"
+  },
+  "extensionDescription": {
+    "message": "Вставка ссылок UPORTAL в письма Thunderbird с автопубликацией и pixel при отправке."
+  },
+  "defaultTitle": {
+    "message": "UPORTAL ссылки"
+  }
+}

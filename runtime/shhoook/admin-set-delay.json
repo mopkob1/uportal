@@ -1,0 +1,21 @@
+{
+  "uri": "/admin/set-delay",
+  "method": "POST",
+  "auth": "X-Token:CHANGE_ME_UPORTAL_ADMIN_SECRET",
+  "ttl": "15s",
+  "error": 500,
+  "query" : {
+    "user_token" : "notoken"
+  },
+  "body": {
+    "delay": "0"
+  },
+  "script": [
+    "bash",
+    "/usr/local/bin/admin-set-delay.sh",
+    "{publication_id}",
+    "{token}",
+    "{delay}",
+    "{user_token}"
+  ]
+}

@@ -1,0 +1,14 @@
+[Unit]
+Description=shhoook — impress the server (HTTP → shell hooks)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+EnvironmentFile=-/etc/default/shhoook
+ExecStart=/usr/local/bin/shhoook-wrapper
+Restart=on-failure
+RestartSec=2
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,97 @@
+body {
+  margin: 0;
+  font: 14px system-ui, sans-serif;
+  background: #f5f5f5;
+  color: #202124;
+}
+
+main {
+  max-width: 760px;
+  margin: 24px auto;
+  padding: 24px;
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+}
+
+h1 {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.version-badge {
+  color: #667085;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+label {
+  display: block;
+  margin: 14px 0;
+  font-weight: 600;
+}
+
+input[type="text"], input[type="url"], input[type="password"], input[type="email"] {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  margin-top: 6px;
+  padding: 9px 10px;
+  border: 1px solid #bbb;
+  border-radius: 6px;
+}
+
+.copy-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 38px;
+  gap: 8px;
+  align-items: center;
+  margin-top: 6px;
+}
+
+.copy-row input {
+  margin-top: 0;
+}
+
+.copy-row button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 36px;
+  margin: 0;
+  padding: 0;
+  border: 1px solid #9aa3b2;
+  border-radius: 6px;
+  background: #f7f8fa;
+  color: #202124;
+  line-height: 1;
+  appearance: none;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.actions {
+  margin-top: 18px;
+  display: flex;
+  gap: 8px;
+}
+
+button {
+  padding: 8px 12px;
+  cursor: pointer;
+}
+
+pre {
+  margin-top: 18px;
+  padding: 12px;
+  background: #111;
+  color: #e6e6e6;
+  min-height: 36px;
+  white-space: pre-wrap;
+}

@@ -1,0 +1,28 @@
+{
+  "uri": "/dictionary",
+  "method": "POST",
+  "auth": "X-Token:CHANGE_ME_UPORTAL_ADMIN_SECRET",
+  "ttl": "60s",
+  "error": 500,
+  "body": {
+    "id": "",
+    "pre": "",
+    "post": "",
+    "url": "",
+    "anchor": "",
+    "type": "redirect",
+    "tags": ""
+  },
+  "script": [
+    "bash",
+    "/usr/local/bin/uportal-dictionary-upsert.sh",
+    "{user_token}",
+    "{id}",
+    "{pre}",
+    "{post}",
+    "{url}",
+    "{anchor}",
+    "{type}",
+    "{tags}"
+  ]
+}

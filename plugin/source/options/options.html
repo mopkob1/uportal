@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>UPORTAL settings</title>
+  <link rel="stylesheet" href="options.css">
+</head>
+<body>
+  <main>
+    <h1>
+      <span id="headingText">UPORTAL Link Inserter</span>
+      <span id="versionBadge" class="version-badge"></span>
+    </h1>
+
+    <label>
+      <span id="apiBaseLabel">API base URL</span>
+      <input id="apiBase" type="url" placeholder="http://localhost:8080">
+    </label>
+
+    <label>
+      <span id="userTokenLabel">X-User-Token</span>
+      <input id="userToken" type="password" placeholder="user token">
+    </label>
+
+    <label>
+      <span id="clientUidLabel">Client UID</span>
+      <div class="copy-row">
+        <input id="clientUid" type="text" disabled>
+        <button id="copyClientUid" type="button" title="Copy UID">⧉</button>
+      </div>
+    </label>
+
+    <label>
+      <span id="pixelBaseUrlLabel">Pixel base URL</span>
+      <input id="pixelBaseUrl" type="url" placeholder="empty means API base URL">
+    </label>
+
+    <label>
+      <span id="dictionaryUrlLabel">Dictionary URL</span>
+      <input id="dictionaryUrl" type="url" placeholder="http://localhost:8080/api/admin/dictionary">
+    </label>
+
+    <label>
+      <span id="defaultMailFromLabel">Mail fallback when recipients are empty</span>
+      <input id="defaultMailFrom" type="email" placeholder="no-reply@example.com">
+    </label>
+
+    <label>
+      <span id="pixelTokenPrefixLabel">Pixel token prefix</span>
+      <input id="pixelTokenPrefix" type="text" placeholder="mail-pixel">
+    </label>
+
+    <div class="actions">
+      <button id="save" type="button">Save</button>
+      <button id="testDictionary" type="button">Test dictionary</button>
+    </div>
+
+    <pre id="status"></pre>
+  </main>
+
+  <script src="../captions.js"></script>
+  <script src="options.js"></script>
+</body>
+</html>

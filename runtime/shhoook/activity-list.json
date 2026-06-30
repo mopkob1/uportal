@@ -1,0 +1,23 @@
+{
+  "uri": "/activity/list",
+  "method": "POST",
+  "auth": "X-Token:CHANGE_ME_UPORTAL_ADMIN_SECRET",
+  "ttl": "60s",
+  "error": 500,
+  "script": [
+    "bash",
+    "/usr/local/bin/uportal-activity-list.sh",
+    "{user_token}",
+    "{type}",
+    "{publication_id}",
+    "{publication}",
+    "{token}",
+    "{event}",
+    "{uid}",
+    "{page}",
+    "{limit}",
+    "{from}",
+    "{to}",
+    "{sort_order}"
+  ]
+}

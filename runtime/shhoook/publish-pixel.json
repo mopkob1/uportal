@@ -1,0 +1,40 @@
+{
+  "uri": "/publish/pixel",
+  "method": "POST",
+  "auth": "X-Token:CHANGE_ME_UPORTAL_ADMIN_SECRET",
+  "ttl": "15s",
+  "error": 500,
+  "query" : {
+    "user_token" : "notoken",
+    "client_uid": "",
+    "client_type": ""
+  },
+  "body": {
+    "type": "pixel",
+    "status": "active",
+    "fresh_until": "-1",
+    "remaining_clicks": "-1",
+    "fallback_url": "__UPORTAL_BASE_URL__/link-fallback",
+    "sticky": "",
+    "lang": "en"
+  },
+  "script": [
+    "bash",
+    "/usr/local/bin/publish-pixel.sh",
+    "{type}",
+    "{status}",
+    "{publication_id}",
+    "{token}",
+    "{short}",
+    "{subj}",
+    "{mails}",
+    "{fresh_until}",
+    "{remaining_clicks}",
+    "{fallback_url}",
+    "{user_token}",
+    "{sticky}",
+    "{client_uid}",
+    "{client_type}",
+    "{lang}"
+  ]
+}
