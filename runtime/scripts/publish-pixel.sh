@@ -26,7 +26,12 @@ mails="${7:-[]}"
 
 fresh_until="${8:--1}"
 remaining_clicks="${9:--1}"
-if [[ "$remaining_clicks" =~ ^-?[0-9]+$ ]] && [ "$remaining_clicks" -lt 0 ]; then
+if [ -z "$fresh_until" ] || [ "$fresh_until" = "null" ]; then
+  fresh_until="-1"
+fi
+if ! [[ "$remaining_clicks" =~ ^-?[0-9]+$ ]]; then
+  remaining_clicks="-1"
+elif [ "$remaining_clicks" -lt 0 ]; then
   remaining_clicks="-1"
 fi
 fallback_url="${10:-}"
@@ -132,7 +137,7 @@ jq -n \
   --arg sticky "$sticky" \
   --arg subj "$subj" \
   --argjson mails "$mails" \
-  --argjson fresh_until "$fresh_until" \
+  --arg fresh_until "$fresh_until" \
   --argjson remaining_clicks "$remaining_clicks" \
   --arg fallback_url "$fallback_url" \
   --arg lang "$lang" '
@@ -178,7 +183,7 @@ jq -n \
   --arg sticky "$sticky" \
   --arg subj "$subj" \
   --argjson mails "$mails" \
-  --argjson fresh_until "$fresh_until" \
+  --arg fresh_until "$fresh_until" \
   --argjson remaining_clicks "$remaining_clicks" \
   --arg fallback_url "$fallback_url" \
   --arg lang "$lang" \

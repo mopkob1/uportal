@@ -34,7 +34,12 @@ page_ttl_sec="${13:-1800}"
 
 fresh_until="${14:--1}"
 remaining_clicks="${15:--1}"
-if [[ "$remaining_clicks" =~ ^-?[0-9]+$ ]] && [ "$remaining_clicks" -lt 0 ]; then
+if [ -z "$fresh_until" ] || [ "$fresh_until" = "null" ]; then
+  fresh_until="-1"
+fi
+if ! [[ "$remaining_clicks" =~ ^-?[0-9]+$ ]]; then
+  remaining_clicks="-1"
+elif [ "$remaining_clicks" -lt 0 ]; then
   remaining_clicks="-1"
 fi
 fallback_url="${16:-}"
@@ -173,16 +178,21 @@ fi
 
 [ -f "$PAGE_DIR/$safe_entry_md" ] || json_error "normalized entry_md not found: $safe_entry_md"
 
+pandoc_error_file="$(mktemp)"
 if command -v pandoc >/dev/null 2>&1; then
-  pandoc \
+  if ! pandoc \
     "$PAGE_DIR/$safe_entry_md" \
     -f markdown \
     -t html5 \
     --wrap=none \
     -o "$PAGE_DIR/content.html" \
-    || json_error "pandoc conversion failed"
+    2>"$pandoc_error_file"; then
+    pandoc_error="$(head -c 1200 "$pandoc_error_file")"
+    rm -f "$pandoc_error_file"
+    json_error "pandoc conversion failed: $pandoc_error"
+  fi
 else
-  docker run --rm \
+  if ! docker run --rm \
     -v "$PAGE_DIR:/data" \
     pandoc/core \
     "/data/$safe_entry_md" \
@@ -190,8 +200,13 @@ else
     -t html5 \
     --wrap=none \
     -o "/data/content.html" \
-    || json_error "pandoc conversion failed"
+    2>"$pandoc_error_file"; then
+    pandoc_error="$(head -c 1200 "$pandoc_error_file")"
+    rm -f "$pandoc_error_file"
+    json_error "pandoc conversion failed: $pandoc_error"
+  fi
 fi
+rm -f "$pandoc_error_file"
 
 [ -f "$PAGE_DIR/content.html" ] || json_error "content.html was not created"
 
@@ -215,7 +230,7 @@ jq -n \
   --arg subj "$subj" \
   --argjson mails "$mails" \
   --arg link "$link" \
-  --argjson fresh_until "$fresh_until" \
+  --arg fresh_until "$fresh_until" \
   --argjson remaining_clicks "$remaining_clicks" \
   --arg fallback_url "$fallback_url" \
   --arg title "$title" \
@@ -290,7 +305,7 @@ jq -n \
   --arg subj "$subj" \
   --argjson mails "$mails" \
   --arg link "$link" \
-  --argjson fresh_until "$fresh_until" \
+  --arg fresh_until "$fresh_until" \
   --argjson remaining_clicks "$remaining_clicks" \
   --arg fallback_url "$fallback_url" \
   --arg title "$title" \

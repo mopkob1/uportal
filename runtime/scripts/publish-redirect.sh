@@ -36,7 +36,12 @@ image="${15:-}"
 
 fresh_until="${16:--1}"
 remaining_clicks="${17:--1}"
-if [[ "$remaining_clicks" =~ ^-?[0-9]+$ ]] && [ "$remaining_clicks" -lt 0 ]; then
+if [ -z "$fresh_until" ] || [ "$fresh_until" = "null" ]; then
+  fresh_until="-1"
+fi
+if ! [[ "$remaining_clicks" =~ ^-?[0-9]+$ ]]; then
+  remaining_clicks="-1"
+elif [ "$remaining_clicks" -lt 0 ]; then
   remaining_clicks="-1"
 fi
 fallback_url="${18:-}"
@@ -178,7 +183,7 @@ jq -n \
   --arg subj "$subj" \
   --argjson mails "$mails" \
   --arg link "$link" \
-  --argjson fresh_until "$fresh_until" \
+  --arg fresh_until "$fresh_until" \
   --argjson remaining_clicks "$remaining_clicks" \
   --arg fallback_url "$fallback_url" \
   --arg title "$title" \
@@ -264,7 +269,7 @@ jq -n \
   --arg subj "$subj" \
   --argjson mails "$mails" \
   --arg link "$link" \
-  --argjson fresh_until "$fresh_until" \
+  --arg fresh_until "$fresh_until" \
   --argjson remaining_clicks "$remaining_clicks" \
   --arg fallback_url "$fallback_url" \
   --arg title "$title" \
