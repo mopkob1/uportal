@@ -7,6 +7,7 @@ node_modules
 prod-data/
 runtime/config/uportal.env
 deploy/self-hosted-docker-compose/data/
+deploy/github/publish.local.env
 
 
 # local env files
