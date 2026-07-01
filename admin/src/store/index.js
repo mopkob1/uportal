@@ -25,6 +25,7 @@ import {
 } from '../config/server'
 
 const TOKEN_KEY = 'uportal_token'
+const ADMIN_TOKEN_KEY = 'uportal_admin_token'
 const SERVER_URL_KEY = 'uportal_server_url'
 const AUTH_HEADER_KEY = 'uportal_auth_header'
 const CLIENT_UID_KEY = 'uportal_client_uid'
@@ -33,10 +34,13 @@ const DRAFTS_KEY_PREFIX = 'uportal_publication_drafts:'
 const LINKS_PAGE_LIMIT = 500
 export { DEFAULT_SERVER_URL, LEGACY_DEFAULT_SERVER_URLS, normalizeServerUrl }
 
+clearPersistedSecret(TOKEN_KEY)
+clearPersistedSecret(ADMIN_TOKEN_KEY)
+
 export default createStore({
   state: {
     adminHeader: localStorage.getItem('uportal_admin_header') || 'X-Admin-Key',
-    adminToken: localStorage.getItem('uportal_admin_token') || '',
+    adminToken: '',
     excludedUids: JSON.parse(localStorage.getItem('uportal_excluded_uids') || '[]'),
     tokens: [],
     tokensPager: {
@@ -47,10 +51,10 @@ export default createStore({
     },
     serverUrl: normalizeServerUrl(localStorage.getItem(SERVER_URL_KEY)),
     authHeader: localStorage.getItem(AUTH_HEADER_KEY) || 'X-User-Token',
-    token: localStorage.getItem(TOKEN_KEY) || '',
+    token: '',
     clientUid: getOrCreateClientUid(),
-    authorized: !!localStorage.getItem(TOKEN_KEY),
-    draftScopeKey: getDraftScopeKey(localStorage.getItem(TOKEN_KEY) || ''),
+    authorized: false,
+    draftScopeKey: '',
 
     links: [],
     linksPager: {
@@ -69,7 +73,7 @@ export default createStore({
     },
 
     dictionary: [],
-    drafts: loadStoredDrafts(localStorage.getItem(TOKEN_KEY) || '')
+    drafts: []
   },
 
   mutations: {
@@ -87,7 +91,7 @@ export default createStore({
 
       localStorage.setItem(SERVER_URL_KEY, state.serverUrl)
       localStorage.setItem(AUTH_HEADER_KEY, state.authHeader)
-      localStorage.setItem(TOKEN_KEY, state.token)
+      clearPersistedSecret(TOKEN_KEY)
     },
 
     logout(state) {
@@ -95,18 +99,19 @@ export default createStore({
       state.authorized = false
       state.draftScopeKey = ''
       state.drafts = []
-      localStorage.removeItem(TOKEN_KEY)
+      clearPersistedSecret(TOKEN_KEY)
     },
     setAdminToken(state, token) {
       state.adminToken = token
-      localStorage.setItem('uportal_admin_token', token)
+      clearPersistedSecret(ADMIN_TOKEN_KEY)
     },
 
     setToken(state, token) {
       state.token = token
-      localStorage.setItem(TOKEN_KEY, token)
+      state.authorized = !!state.token
       state.draftScopeKey = getDraftScopeKey(state.token)
       state.drafts = loadStoredDrafts(state.token)
+      clearPersistedSecret(TOKEN_KEY)
     },
 
     setLinks(state, links) {
@@ -211,7 +216,7 @@ export default createStore({
       state.adminToken = payload.token || ''
 
       localStorage.setItem('uportal_admin_header', state.adminHeader)
-      localStorage.setItem('uportal_admin_token', state.adminToken)
+      clearPersistedSecret(ADMIN_TOKEN_KEY)
     },
 
     setTokens(state, payload) {
@@ -636,6 +641,14 @@ function getOrCreateClientUid() {
   const uid = `web-${random}`.replace(/[^A-Za-z0-9._:-]/g, '-').slice(0, 128)
   localStorage.setItem(CLIENT_UID_KEY, uid)
   return uid
+}
+
+function clearPersistedSecret(key) {
+  try {
+    localStorage.removeItem(key)
+  } catch {
+    // localStorage may be unavailable in hardened browser contexts.
+  }
 }
 
 function normalizeDraftOwners(drafts, scopeKey, options = {}) {
