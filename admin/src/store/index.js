@@ -429,10 +429,7 @@ async function loadPagedLinks(filters = {}) {
     offset
   })
   const meta = extractListMeta(data)
-  const campaigns = extractCampaigns(data)
-  const items = campaigns.length
-      ? campaigns.flatMap(campaign => Array.isArray(campaign.links) ? campaign.links : [])
-      : extractList(data)
+  const items = extractLinksPayload(data)
   const total = Number.isFinite(meta.total) ? meta.total : items.length
 
   return {
@@ -463,7 +460,7 @@ async function loadAllLinks(filters = {}) {
       ...baseFilters,
       offset
     })
-    const pageItems = extractList(data)
+    const pageItems = extractLinksPayload(data)
     const meta = extractListMeta(data)
 
     items.push(...pageItems)
@@ -495,6 +492,14 @@ async function loadAllLinks(filters = {}) {
       has_next: false
     }
   }
+}
+
+function extractLinksPayload(payload) {
+  const campaigns = extractCampaigns(payload)
+
+  return campaigns.length
+      ? campaigns.flatMap(campaign => Array.isArray(campaign.links) ? campaign.links : [])
+      : extractList(payload)
 }
 
 function extractListMeta(payload) {

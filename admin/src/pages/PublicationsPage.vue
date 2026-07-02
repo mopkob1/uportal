@@ -610,6 +610,7 @@ async function loadCampaignReports(row, options = {}) {
 
   if (force) {
     clearCampaignReports(row)
+    await refreshCampaignLinks(row)
   }
 
   const links = row.links || []
@@ -641,6 +642,24 @@ async function loadCampaignReports(row, options = {}) {
     if (notify) message.warning(`${captions.campaignStatsPartial}: ${ok}/${links.length}`)
   } else {
     if (notify) message.success(`${captions.campaignStatsLoaded}: ${ok}`)
+  }
+}
+
+async function refreshCampaignLinks(row) {
+  const publicationId = row.publication_id || row.links?.[0]?.publication_id || ''
+  if (!publicationId) return
+
+  const freshLinks = await store.dispatch('loadPublicationLinks', publicationId)
+  const freshByToken = new Map(
+      freshLinks.map(link => [`${link.publication_id || link.publication || ''}:${link.token || ''}`, link])
+  )
+
+  for (const link of row.links || []) {
+    const fresh = freshByToken.get(`${link.publication_id || link.publication || ''}:${link.token || ''}`)
+    if (!fresh) continue
+
+    Object.assign(link, normalizeLink(fresh))
+    delete linkParamDrafts[linkParamKey(link)]
   }
 }
 
