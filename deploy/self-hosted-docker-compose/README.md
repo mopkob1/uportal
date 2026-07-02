@@ -94,6 +94,9 @@ The same values are saved in:
 Use `plugin xpi download` to install the generated Thunderbird XPI for the
 deployment.
 
+The first user also gets a publication with the Thunderbird plugin download
+link. It is visible in the publication list for that user.
+
 ## Host Nginx
 
 Install the sample vhost:
@@ -117,6 +120,12 @@ Use it as `X-User-Token` in:
 ```text
 https://links.example.com/ui/
 ```
+
+If you want to publish from the first user, remember that UPORTAL binds
+publishing to the selected client instance. After the first failed publish
+attempt from the web UI or plugin, open the user settings and switch the active
+publishing client to the client you are actually using. Alternatively, create a
+new user token and publish from that user.
 
 To view the generated values later:
 
