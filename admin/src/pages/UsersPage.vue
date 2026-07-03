@@ -365,7 +365,7 @@ async function saveClientSelection(row, type, value) {
   if (!tokenCanEdit(row)) return
 
   const activeClients = normalizeActiveClients(row.active_clients || row.payload?.active_clients)
-  activeClients[type] = value || ''
+  activeClients[type] = normalizeArray(value)
 
   try {
     await store.dispatch('saveTokenItem', {
@@ -388,35 +388,40 @@ async function saveClientSelection(row, type, value) {
 
 function clientSelector(row, type) {
   const options = clientOptions(row, type)
-  const value = normalizeActiveClients(row.active_clients || row.payload?.active_clients)[type] || null
+  const value = normalizeActiveClients(row.active_clients || row.payload?.active_clients)[type]
   const disabled = !tokenCanEdit(row) || !options.length
-  const record = findClientRecord(row, type, value)
-  const registeredAt = formatDateTime(record?.first_seen || record?.last_seen || '')
+  const records = value.map(uid => findClientRecord(row, type, uid)).filter(Boolean)
 
   const select = () => h(NSelect, {
     value,
     options,
     size: 'small',
+    multiple: true,
     clearable: true,
     disabled,
     placeholder: 'EMPTY',
+    maxTagCount: 'responsive',
     consistentMenuWidth: false,
-    onUpdateValue: (nextValue) => saveClientSelection(row, type, nextValue || '')
+    onUpdateValue: (nextValue) => saveClientSelection(row, type, nextValue || [])
   })
 
   return h(NTooltip, { placement: 'top' }, {
     trigger: select,
-    default: () => value
-        ? h('div', { class: 'client-tooltip' }, [
-          h('div', [
-            h('span', 'UID: '),
-            h('span', { class: 'mono' }, value)
-          ]),
-          h('div', [
-            h('span', tooltips.registeredAt),
-            h('span', { class: 'mono' }, registeredAt)
+    default: () => value.length
+        ? h('div', { class: 'client-tooltip' }, value.map(uid => {
+          const record = records.find(item => item?.uid === uid)
+          const registeredAt = formatDateTime(record?.first_seen || record?.last_seen || '')
+          return h('div', { class: 'client-tooltip-row' }, [
+            h('div', [
+              h('span', 'UID: '),
+              h('span', { class: 'mono' }, uid)
+            ]),
+            h('div', [
+              h('span', tooltips.registeredAt),
+              h('span', { class: 'mono' }, registeredAt)
+            ])
           ])
-        ])
+        }))
         : tooltips.noKnownClients
   })
 }
@@ -448,8 +453,8 @@ function findClientRecord(row, type, uid) {
 function normalizeActiveClients(value) {
   const source = value && typeof value === 'object' ? value : {}
   return {
-    web: source.web || '',
-    plugin: source.plugin || ''
+    web: normalizeArray(source.web),
+    plugin: normalizeArray(source.plugin)
   }
 }
 
@@ -595,6 +600,12 @@ onMounted(() => {
 .user-action-button :deep(svg) {
   color: currentColor;
   stroke: currentColor;
+}
+
+.client-tooltip-row + .client-tooltip-row {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid rgba(255, 255, 255, 0.18);
 }
 
 </style>

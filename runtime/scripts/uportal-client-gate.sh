@@ -82,7 +82,18 @@ uportal_require_publish_client() {
   ' "$file" > "$tmp" && mv "$tmp" "$file"
   chmod 644 "$file"
 
-  active="$(jq -r --arg type "$client_type" '.active_clients[$type] // ""' "$file" 2>/dev/null || echo "")"
+  active="$(jq -r --arg type "$client_type" '
+    def active_list:
+      if type == "array" then
+        map(tostring | gsub("^\\s+|\\s+$"; "")) | map(select(. != ""))
+      elif type == "string" then
+        split(",") | map(gsub("^\\s+|\\s+$"; "")) | map(select(. != ""))
+      else
+        []
+      end;
+
+    (.active_clients[$type] // []) | active_list | join(",")
+  ' "$file" 2>/dev/null || echo "")"
   known_count="$(jq -r --arg type "$client_type" '(.known_clients[$type] // []) | length' "$file" 2>/dev/null || echo "0")"
 
   if [ -z "$active" ]; then
@@ -93,7 +104,7 @@ uportal_require_publish_client() {
     return 1
   fi
 
-  if [ "$active" != "$client_uid" ]; then
+  if ! printf '%s\n' "$active" | tr ',' '\n' | grep -Fx -- "$client_uid" >/dev/null; then
     jq -cn \
       --arg type "$client_type" \
       --arg uid "$client_uid" \
