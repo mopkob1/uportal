@@ -124,8 +124,7 @@ require_nonempty "mails" "$mails"
 require_nonempty "link" "$link"
 require_nonempty "file" "$file"
 
-printf '%s' "$mails" | jq -e 'type == "array"' >/dev/null 2>&1 \
-  || json_error "mails must be a JSON array"
+mails="$(uportal_normalize_json_array_arg "$mails")"
 
 uportal_require_publish_client "$actor" "$client_type" "$client_uid" || exit 0
 

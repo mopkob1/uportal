@@ -364,8 +364,16 @@ async function toggleStatus(row) {
 async function saveClientSelection(row, type, value) {
   if (!tokenCanEdit(row)) return
 
+  const multiple = canUseMultipleClients(row)
+  const limit = clientSeatLimit(row)
   const activeClients = normalizeActiveClients(row.active_clients || row.payload?.active_clients)
-  activeClients[type] = normalizeArray(value)
+  if (multiple) {
+    activeClients[type] = normalizeArray(value).slice(0, limit)
+  } else {
+    activeClients.web = activeClients.web[0] || ''
+    activeClients.plugin = activeClients.plugin[0] || ''
+    activeClients[type] = normalizeArray(value)[0] || ''
+  }
 
   try {
     await store.dispatch('saveTokenItem', {
@@ -388,27 +396,41 @@ async function saveClientSelection(row, type, value) {
 
 function clientSelector(row, type) {
   const options = clientOptions(row, type)
-  const value = normalizeActiveClients(row.active_clients || row.payload?.active_clients)[type]
+  const multiple = canUseMultipleClients(row)
+  const limit = clientSeatLimit(row)
+  const selected = normalizeActiveClients(row.active_clients || row.payload?.active_clients)[type]
+  const value = multiple ? selected.slice(0, limit) : selected[0] || null
   const disabled = !tokenCanEdit(row) || !options.length
-  const records = value.map(uid => findClientRecord(row, type, uid)).filter(Boolean)
+  const tooltipUids = multiple ? value : (value ? [value] : [])
+  const records = tooltipUids.map(uid => findClientRecord(row, type, uid)).filter(Boolean)
 
   const select = () => h(NSelect, {
     value,
     options,
     size: 'small',
-    multiple: true,
+    multiple,
     clearable: true,
     disabled,
     placeholder: 'EMPTY',
-    maxTagCount: 'responsive',
+    maxTagCount: multiple ? 'responsive' : undefined,
     consistentMenuWidth: false,
-    onUpdateValue: (nextValue) => saveClientSelection(row, type, nextValue || [])
+    onUpdateValue: (nextValue) => {
+      if (multiple) {
+        const nextList = normalizeArray(nextValue)
+        if (nextList.length > limit) {
+          message.warning(`Можно выбрать не больше ${limit}`)
+        }
+        return saveClientSelection(row, type, nextList)
+      }
+
+      return saveClientSelection(row, type, nextValue || '')
+    }
   })
 
   return h(NTooltip, { placement: 'top' }, {
     trigger: select,
-    default: () => value.length
-        ? h('div', { class: 'client-tooltip' }, value.map(uid => {
+    default: () => tooltipUids.length
+        ? h('div', { class: 'client-tooltip' }, tooltipUids.map(uid => {
           const record = records.find(item => item?.uid === uid)
           const registeredAt = formatDateTime(record?.first_seen || record?.last_seen || '')
           return h('div', { class: 'client-tooltip-row' }, [
@@ -456,6 +478,17 @@ function normalizeActiveClients(value) {
     web: normalizeArray(source.web),
     plugin: normalizeArray(source.plugin)
   }
+}
+
+function canUseMultipleClients(row) {
+  const site = row.site || row.payload?.site || {}
+  return normalizeArray(site.scope).includes('team:client_seats')
+}
+
+function clientSeatLimit(row) {
+  const site = row.site || row.payload?.site || {}
+  const value = Number(site.limits?.client_seats_included || 1)
+  return Number.isFinite(value) && value > 0 ? Math.floor(value) : 1
 }
 
 async function copyToken(token) {

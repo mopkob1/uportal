@@ -12,6 +12,7 @@
   "body": {
     "type": "page",
     "status": "active",
+    "mails": [],
     "fresh_until": "-1",
     "remaining_clicks": "-1",
     "fallback_url": "__UPORTAL_BASE_URL__/link-fallback",

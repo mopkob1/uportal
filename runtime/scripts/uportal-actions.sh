@@ -182,3 +182,24 @@ refresh_link_index() {
     uportal-links-index-upsert.sh upsert "$publication_id" "$token" >/dev/null || true
   fi
 }
+
+uportal_normalize_json_array_arg() {
+  local value="${1:-}"
+
+  if printf '%s' "$value" | jq -c -e 'type == "array"' >/dev/null 2>&1; then
+    printf '%s' "$value" | jq -c '.'
+    return 0
+  fi
+
+  if [ -z "$value" ] || [ "$value" = "null" ]; then
+    printf '[]'
+    return 0
+  fi
+
+  jq -cn --arg value "$value" '
+    $value
+    | split(",")
+    | map(gsub("^\\s+|\\s+$"; ""))
+    | map(select(. != ""))
+  '
+}
