@@ -1633,16 +1633,20 @@ function downloadQrIconButton(row, shortUrl) {
   const shortId = getShortId(row, shortUrl)
 
   return h(NTooltip, {}, {
-    trigger: () => h('button', {
-      type: 'button',
+    trigger: () => h(NButton, {
+      circle: true,
+      quaternary: true,
+      size: 'tiny',
       class: 'qr-download-button',
       onClick: async (event) => {
         event.stopPropagation()
         await downloadShortLinkQrPng(shortUrl, shortId)
       }
-    }, [
-      h(Download, { size: 15, strokeWidth: 1.8 })
-    ]),
+    }, {
+      icon: () => h(NIcon, null, {
+        default: () => h(Download, { size: 14, strokeWidth: 1.9 })
+      })
+    }),
     default: () => `Скачать QR PNG: ${shortId}.png`
   })
 }
@@ -2198,27 +2202,7 @@ function getCampaignReportStatus(row) {
 }
 
 .qr-download-button {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 22px;
-  height: 22px;
-  padding: 0;
-  color: rgba(31, 34, 37, 0.72);
-  cursor: pointer;
-  background: #fff;
-  border: 1px solid #d9dee8;
-  border-radius: 4px;
-  flex: 0 0 auto;
   margin-left: 2px;
-}
-
-.qr-download-button:hover,
-.qr-download-button:focus-visible {
-  color: #18a058;
-  border-color: rgba(24, 160, 88, 0.45);
-  background: rgba(24, 160, 88, 0.09);
-  outline: none;
 }
 
 .qr-download-button :deep(svg) {

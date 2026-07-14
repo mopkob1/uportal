@@ -12,9 +12,9 @@
     body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;margin:24px;background:#f7f7f8;color:#111}
     .wrap{max-width:760px;margin:0 auto;background:#fff;border:1px solid #e5e7eb;border-radius:16px;padding:24px}
     .muted{opacity:.75}
-    .made{margin-top:28px;padding-top:18px;border-top:1px solid #e5e7eb;font-weight:700}
-    .made a{display:inline-block;margin-top:6px;color:#2563eb;text-decoration:none;font-weight:600}
-    .made a:hover{text-decoration:underline}
+    .powered{margin-top:28px;padding-top:18px;border-top:1px solid #e5e7eb;font-size:14px;color:#4b5563}
+    .powered a{color:#2563eb;text-decoration:none;font-weight:700}
+    .powered a:hover{text-decoration:underline}
   </style>
 </head>
 <body>
@@ -23,9 +23,9 @@
     <p class="muted">{{DESCRIPTION}}</p>
     <p>{{FILE_LABEL}}: <b>{{FILE_NAME}}</b></p>
     <p>{{DOWNLOAD_STARTS_IN}} <b id="sec">{{DELAY}}</b> {{SECONDS_LABEL}}</p>
-    <div class="made">
-      <div>{{MADE_WITH_UPORTAL}}</div>
-      <a href="{{UPORTAL_GITHUB_URL}}" target="_blank" rel="noopener noreferrer">GitHub</a>
+    <div class="powered">
+      {{POWERED_BY_PREFIX}} <a href="{{UPORTAL_GITHUB_URL}}" target="_blank" rel="noopener noreferrer">UPORTAL</a>.
+      <a href="{{UPORTAL_GITHUB_URL}}" target="_blank" rel="noopener noreferrer">{{POWERED_BY_CTA}}</a>
     </div>
   </div>
 
