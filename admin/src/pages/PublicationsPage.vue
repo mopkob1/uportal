@@ -1633,7 +1633,8 @@ function downloadQrIconButton(row, shortUrl) {
   const shortId = getShortId(row, shortUrl)
 
   return h(NTooltip, {}, {
-    trigger: () => h('span', {
+    trigger: () => h('button', {
+      type: 'button',
       class: 'qr-download-button',
       onClick: async (event) => {
         event.stopPropagation()
@@ -1647,7 +1648,9 @@ function downloadQrIconButton(row, shortUrl) {
 }
 
 async function downloadShortLinkQrPng(shortUrl, shortId) {
-  if (!shortUrl) {
+  const qrData = normalizeQrPayloadUrl(shortUrl)
+
+  if (!qrData) {
     message.warning(captions.nothingToCopy)
     return
   }
@@ -1662,7 +1665,7 @@ async function downloadShortLinkQrPng(shortUrl, shortId) {
     ctx.fillStyle = '#ffffff'
     ctx.fillRect(0, 0, canvas.width, canvas.height)
 
-    const qrImage = await loadQrImage(shortUrl)
+    const qrImage = await loadQrImage(qrData)
     ctx.imageSmoothingEnabled = false
     ctx.drawImage(qrImage, 60, 60, 480, 480)
     drawUportalQrEmblem(ctx)
@@ -1678,8 +1681,19 @@ async function downloadShortLinkQrPng(shortUrl, shortId) {
   }
 }
 
-function loadQrImage(shortUrl) {
-  const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=600x600&margin=24&format=png&data=${encodeURIComponent(shortUrl)}`
+function normalizeQrPayloadUrl(shortUrl) {
+  const value = String(shortUrl || '').trim()
+  if (!value) return ''
+
+  try {
+    return new URL(value, window.location.origin).href
+  } catch {
+    return value
+  }
+}
+
+function loadQrImage(qrData) {
+  const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=600x600&margin=24&ecc=H&format=png&data=${encodeURIComponent(qrData)}`
 
   return new Promise((resolve, reject) => {
     const image = new Image()
@@ -1692,31 +1706,25 @@ function loadQrImage(shortUrl) {
 
 function drawUportalQrEmblem(ctx) {
   const center = 300
-  const box = 124
-  const radius = 20
-  const x = center - box / 2
-  const y = center - box / 2
+  const width = 82
+  const height = 34
+  const radius = 10
+  const x = center - width / 2
+  const y = center - height / 2
 
   ctx.save()
-  roundedRect(ctx, x, y, box, box, radius)
+  roundedRect(ctx, x, y, width, height, radius)
   ctx.fillStyle = '#ffffff'
   ctx.fill()
-  ctx.lineWidth = 8
+  ctx.lineWidth = 3
   ctx.strokeStyle = '#ffffff'
   ctx.stroke()
 
-  roundedRect(ctx, x + 10, y + 10, box - 20, box - 20, 16)
   ctx.fillStyle = '#165a36'
-  ctx.fill()
-
-  ctx.fillStyle = '#ffffff'
-  ctx.font = '700 34px Arial, Helvetica, sans-serif'
+  ctx.font = '700 16px Arial, Helvetica, sans-serif'
   ctx.textAlign = 'center'
   ctx.textBaseline = 'middle'
-  ctx.fillText('UP', center, center - 10)
-
-  ctx.font = '700 15px Arial, Helvetica, sans-serif'
-  ctx.fillText('ORTAL', center, center + 24)
+  ctx.fillText('U portal', center, center + 1)
   ctx.restore()
 }
 
@@ -2185,7 +2193,7 @@ function getCampaignReportStatus(row) {
 .anchor-link-actions {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 10px;
   min-width: 0;
 }
 
@@ -2195,14 +2203,22 @@ function getCampaignReportStatus(row) {
   justify-content: center;
   width: 22px;
   height: 22px;
+  padding: 0;
   color: rgba(31, 34, 37, 0.72);
   cursor: pointer;
+  background: #fff;
+  border: 1px solid #d9dee8;
   border-radius: 4px;
+  flex: 0 0 auto;
+  margin-left: 2px;
 }
 
-.qr-download-button:hover {
+.qr-download-button:hover,
+.qr-download-button:focus-visible {
   color: #18a058;
+  border-color: rgba(24, 160, 88, 0.45);
   background: rgba(24, 160, 88, 0.09);
+  outline: none;
 }
 
 .qr-download-button :deep(svg) {
