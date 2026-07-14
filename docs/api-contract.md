@@ -57,6 +57,92 @@ Response envelopes use one of these shapes:
 }
 ```
 
+## Site Widget Telegram Bind
+
+Site widget endpoints are served by the additional site-backend container under:
+
+```text
+/api/site/...
+```
+
+Full widget API contract:
+
+- [`site-widgets/api-contract.md`](../site-widgets/api-contract.md)
+- [`Bind: Telegram`](../site-widgets/api-contract.md#bind-telegram)
+
+Runtime configuration:
+
+- [`runtime-config-profile.md`](../site-widgets/runtime-config-profile.md)
+- [`profile.endpoints.*`](../site-widgets/runtime-config-profile.md#profile-fields)
+- [`telegramBind.*`](../site-widgets/runtime-config-profile.md#telegram-bind-config)
+
+Telegram binding starts with:
+
+```http
+POST /api/site/bind/telegram/start
+```
+
+The endpoint returns a short Telegram `startParam`, `botUrl` and `qrPayload`.
+The command prefix is configured in
+[`telegramBind.commands[].prefix`](../site-widgets/runtime-config-profile.md#telegram-bind-config):
+
+```json
+{
+  "version": "1.0",
+  "botName": "uportal_sitebot",
+  "commands": [
+    { "name": "bind", "prefix": "ub" }
+  ],
+  "ttlSeconds": 600,
+  "refreshSeconds": 60,
+  "maxRefreshes": 10
+}
+```
+
+For binding, only the command with `name: "bind"` is used. Its `prefix` is
+prepended to the generated short id with `_`:
+
+```text
+ub_<short-lived-id>
+```
+
+The bot receives:
+
+```text
+/start ub_<short-lived-id>
+```
+
+Then n8n/bot validates this start parameter through the URL published as
+[`profile.endpoints.telegramValidate`](../site-widgets/runtime-config-profile.md#profile-fields):
+
+```http
+POST /api/site/bind/telegram/validate
+X-UPORTAL-PROFILE-SECRET: <shared secret>
+Content-Type: application/json
+```
+
+```json
+{
+  "startParam": "ub_<short-lived-id>",
+  "telegramUserId": "123456789"
+}
+```
+
+If `commands` is absent, the backend uses the default prefix `ub`. The validate
+endpoint also keeps accepting `ub_<id>` for compatibility.
+
+Current external Telegram and recovery callback endpoints:
+
+| Runtime config field | Endpoint | Full contract |
+| --- | --- | --- |
+| `profile.endpoints.telegramValidate` | `POST /api/site/bind/telegram/validate` | [`site-widgets/api-contract.md`](../site-widgets/api-contract.md#post-apisitebindtelegramvalidate) |
+| `profile.endpoints.telegramConfirm` | `POST /api/site/bind/telegram/confirm` | [`site-widgets/api-contract.md`](../site-widgets/api-contract.md#post-apisitebindtelegramconfirm) |
+| `profile.endpoints.telegramError` | `POST /api/site/bind/telegram/error` | [`site-widgets/api-contract.md`](../site-widgets/api-contract.md#post-apisitebindtelegramerror) |
+| `profile.endpoints.tokenRecoveryRequest` | `POST /api/site/recovery/token/request` | [`site-widgets/api-contract.md`](../site-widgets/api-contract.md#post-apisiterecoverytokenrequest) |
+
+Auth gateway callback usage is documented in
+[`site-widgets/account-bind/uportal-auth-gateway/API_CONTRACT.md`](../site-widgets/account-bind/uportal-auth-gateway/API_CONTRACT.md#site-backend-trusted-endpoints).
+
 ## Common Types
 
 | Field | Type | Notes |

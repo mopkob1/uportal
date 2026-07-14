@@ -104,32 +104,46 @@ watch(
     }
 )
 
-function save() {
+async function save() {
   const previousAuth = {
     serverUrl: normalizeServerUrl(store.state.serverUrl),
     authHeader: store.state.authHeader || 'X-User-Token',
-    token: store.state.token || ''
+    token: store.state.token || '',
+    authMode: store.state.authMode || 'token'
   }
 
-  store.commit('setAuthConfig', {
-    serverUrl: form.serverUrl,
-    authHeader: form.authHeader,
-    token: form.token
-  })
-  store.commit(
-      'setExcludedUids',
-      form.excludedUids
-          .split(/\s|,|;/)
-          .map(item => item.trim())
-          .filter(Boolean)
-  )
-  message.success(caps.saved)
-  emit('saved', {
-    changed: previousAuth.serverUrl !== store.state.serverUrl ||
-        previousAuth.authHeader !== store.state.authHeader ||
-        previousAuth.token !== store.state.token
-  })
-  emit('update:show', false)
+  try {
+    if (store.state.siteBackendAvailable) {
+      await store.dispatch('loginWithSiteBackend', {
+        serverUrl: form.serverUrl,
+        token: form.token
+      })
+    } else {
+      store.commit('setAuthConfig', {
+        serverUrl: form.serverUrl,
+        authHeader: form.authHeader,
+        token: form.token
+      })
+    }
+
+    store.commit(
+        'setExcludedUids',
+        form.excludedUids
+            .split(/\s|,|;/)
+            .map(item => item.trim())
+            .filter(Boolean)
+    )
+    message.success(caps.saved)
+    emit('saved', {
+      changed: previousAuth.serverUrl !== store.state.serverUrl ||
+          previousAuth.authHeader !== store.state.authHeader ||
+          previousAuth.token !== store.state.token ||
+          previousAuth.authMode !== store.state.authMode
+    })
+    emit('update:show', false)
+  } catch (error) {
+    message.error(error?.message || 'Authorization failed')
+  }
 }
 
 async function copyClientUid() {
@@ -137,8 +151,8 @@ async function copyClientUid() {
   message.success(caps.uidCopied)
 }
 
-function logout() {
-  store.commit('logout')
+async function logout() {
+  await store.dispatch('logoutAuth')
   message.success(caps.reset)
   emit('update:show', false)
 }

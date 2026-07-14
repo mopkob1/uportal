@@ -23,6 +23,12 @@ import {
   LEGACY_DEFAULT_SERVER_URLS,
   normalizeServerUrl
 } from '../config/server'
+import {
+  fetchSiteSession,
+  loginSiteSession,
+  logoutSiteSession,
+  siteSessionProbeCandidates
+} from '../api/siteSessionApi'
 
 const TOKEN_KEY = 'uportal_token'
 const ADMIN_TOKEN_KEY = 'uportal_admin_token'
@@ -51,6 +57,9 @@ export default createStore({
     },
     serverUrl: normalizeServerUrl(localStorage.getItem(SERVER_URL_KEY)),
     authHeader: localStorage.getItem(AUTH_HEADER_KEY) || 'X-User-Token',
+    authMode: 'token',
+    siteBackendAvailable: false,
+    siteSession: null,
     token: '',
     clientUid: getOrCreateClientUid(),
     authorized: false,
@@ -84,6 +93,9 @@ export default createStore({
     setAuthConfig(state, payload) {
       state.serverUrl = normalizeServerUrl(payload.serverUrl)
       state.authHeader = payload.authHeader || 'X-User-Token'
+      state.authMode = 'token'
+      state.siteBackendAvailable = false
+      state.siteSession = null
       state.token = payload.token || ''
       state.authorized = !!state.token
       state.draftScopeKey = getDraftScopeKey(state.token)
@@ -97,6 +109,8 @@ export default createStore({
     logout(state) {
       state.token = ''
       state.authorized = false
+      state.authMode = state.siteBackendAvailable ? 'site-session' : 'token'
+      state.siteSession = null
       state.draftScopeKey = ''
       state.drafts = []
       clearPersistedSecret(TOKEN_KEY)
@@ -107,10 +121,40 @@ export default createStore({
     },
 
     setToken(state, token) {
+      state.authMode = 'token'
+      state.siteSession = null
       state.token = token
       state.authorized = !!state.token
       state.draftScopeKey = getDraftScopeKey(state.token)
       state.drafts = loadStoredDrafts(state.token)
+      clearPersistedSecret(TOKEN_KEY)
+    },
+
+    setSiteBackendAvailable(state, payload) {
+      state.siteBackendAvailable = !!payload.available
+      if (payload.serverUrl) {
+        state.serverUrl = normalizeServerUrl(payload.serverUrl)
+        localStorage.setItem(SERVER_URL_KEY, state.serverUrl)
+      }
+      if (state.siteBackendAvailable && !state.authorized) {
+        state.authMode = 'site-session'
+      }
+    },
+
+    setSiteSessionAuth(state, payload) {
+      const session = payload.session || null
+      state.serverUrl = normalizeServerUrl(payload.serverUrl || state.serverUrl)
+      state.authHeader = 'X-User-Token'
+      state.authMode = 'site-session'
+      state.siteBackendAvailable = true
+      state.siteSession = session
+      state.token = ''
+      state.authorized = !!session?.authenticated
+      state.draftScopeKey = getDraftScopeKey(getSiteSessionDraftKey(session))
+      state.drafts = loadStoredDrafts(getSiteSessionDraftKey(session))
+
+      localStorage.setItem(SERVER_URL_KEY, state.serverUrl)
+      localStorage.setItem(AUTH_HEADER_KEY, state.authHeader)
       clearPersistedSecret(TOKEN_KEY)
     },
 
@@ -231,6 +275,50 @@ export default createStore({
   },
 
   actions: {
+    async bootstrapAuth({ commit, state }) {
+      for (const candidate of siteSessionProbeCandidates(state.serverUrl)) {
+        try {
+          const session = await fetchSiteSession(candidate)
+          commit('setSiteBackendAvailable', {
+            available: true,
+            serverUrl: candidate
+          })
+          if (session.authenticated) {
+            commit('setSiteSessionAuth', {
+              serverUrl: candidate,
+              session
+            })
+          }
+          return {
+            mode: 'site-session',
+            authenticated: !!session.authenticated
+          }
+        } catch {
+          // Candidate is not a site-backend origin. Try the next one.
+        }
+      }
+
+      commit('setSiteBackendAvailable', { available: false })
+      return {
+        mode: 'token',
+        authenticated: false
+      }
+    },
+
+    async loginWithSiteBackend({ commit, state }, payload) {
+      const serverUrl = normalizeServerUrl(payload.serverUrl || state.serverUrl)
+      const session = await loginSiteSession(serverUrl, payload.token || '')
+      commit('setSiteSessionAuth', { serverUrl, session })
+      return session
+    },
+
+    async logoutAuth({ commit, state }) {
+      if (state.siteBackendAvailable) {
+        await logoutSiteSession(state.serverUrl)
+      }
+      commit('logout')
+    },
+
     async loadLinks({ commit }, filters = {}) {
       const result = await loadPagedLinks(filters)
       const items = result.items
@@ -612,6 +700,16 @@ function getDraftsStorageKey(token) {
 function getDraftScopeKey(token) {
   if (!token) return ''
   return hashToken(token)
+}
+
+function getSiteSessionDraftKey(session) {
+  if (!session?.authenticated) return ''
+  return [
+    'site-session',
+    session.account?.id || '',
+    session.account?.email || '',
+    session.visitorId || ''
+  ].filter(Boolean).join(':')
 }
 
 function loadLegacyDrafts() {

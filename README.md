@@ -1,6 +1,6 @@
 # UPORTAL: Open-Source Self-Hosted Email Tracking, Link Tracking and Controlled Publications
 
-![Version](https://img.shields.io/badge/version-0.2.14-blue)
+![Version](https://img.shields.io/badge/version-0.2.18-blue)
 ![License](https://img.shields.io/badge/license-MIT-blue)
 ![Self-hosted](https://img.shields.io/badge/self--hosted-yes-brightgreen)
 ![Thunderbird](https://img.shields.io/badge/Thunderbird-add--on-orange)

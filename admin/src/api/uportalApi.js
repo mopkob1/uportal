@@ -15,6 +15,16 @@ api.interceptors.request.use((config) => {
   config.baseURL = serverUrl
   config.headers = config.headers || {}
 
+  if (store.state.authMode === 'site-session') {
+    config.withCredentials = true
+    config.url = toSiteRuntimeProxyPath(config.url || '')
+    if (store.state.clientUid) {
+      config.headers['X-UPortal-Client-Uid'] = store.state.clientUid
+      config.headers['X-UPortal-Client-Type'] = 'web'
+    }
+    return config
+  }
+
   if (adminAuth?.token) {
     config.headers[adminAuth.header || 'X-Admin-Key'] = adminAuth.token
     return config
@@ -30,6 +40,14 @@ api.interceptors.request.use((config) => {
 
   return config
 })
+
+function toSiteRuntimeProxyPath(url) {
+  const value = String(url || '')
+  if (value.startsWith('/api/site/runtime/')) return value
+  if (value.startsWith('/api/admin/')) return `/api/site/runtime${value}`
+  if (value.startsWith('/upload/')) return `/api/site/runtime${value}`
+  return value
+}
 
 function withAdminAuth(adminHeader, adminToken, config = {}) {
   return {

@@ -111,7 +111,8 @@ const pageKeys = ref({
 const token = computed(() => store.state.token)
 const authorized = computed(() => store.state.authorized)
 
-onMounted(() => {
+onMounted(async () => {
+  await store.dispatch('bootstrapAuth')
   window.addEventListener('popstate', handlePopState)
   normalizeInitialRoute()
 })
