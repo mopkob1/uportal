@@ -97,7 +97,7 @@
 import { computed, h, nextTick, onMounted, ref } from 'vue'
 import { useStore } from 'vuex'
 import { CopyOutline } from '@vicons/ionicons5'
-import { Pencil, Plus, Search, Trash2 } from 'lucide-vue-next'
+import { Mail, Pencil, Plus, Search, Send, Trash2 } from 'lucide-vue-next'
 import { useMessage, NButton, NIcon, NPopconfirm, NSelect, NSpace, NTag, NTooltip } from 'naive-ui'
 import UserTokenModal from '../users/UserTokenModal.vue'
 import { formatCaption, getCaptions } from '../captions'
@@ -137,7 +137,10 @@ const columns = [
   },
   {
     title: columnLabels.user,
-    key: 'user'
+    key: 'user',
+    render(row) {
+      return userNameCell(row)
+    }
   },
   {
     title: columnLabels.plugin,
@@ -512,6 +515,65 @@ function tokenCopyCell(row) {
   })
 }
 
+function userNameCell(row) {
+  const name = row.user || row.payload?.user || row.user_id || row.payload?.user_id || '—'
+  const bindings = tokenBindings(row)
+
+  return h('span', { class: 'user-name-cell' }, [
+    h('span', { class: 'user-name-text' }, name),
+    ...bindings.map(binding => h(NTooltip, { placement: 'top' }, {
+      trigger: () => h('span', {
+        class: ['user-binding-badge', `user-binding-badge--${binding.type}`]
+      }, [
+        h(NIcon, { size: 13 }, {
+          default: () => h(binding.icon, { size: 13, strokeWidth: 1.9 })
+        })
+      ]),
+      default: () => binding.label
+    }))
+  ])
+}
+
+function tokenBindings(row) {
+  const site = row.site || row.payload?.site || {}
+  const account = site.account || row.account || row.payload?.account || {}
+  const email = site.email || row.email || row.payload?.email || {}
+  const telegram = site.telegram || row.telegram || row.payload?.telegram || {}
+  const siteBindings = site.bindings || {}
+
+  const hasEmail = Boolean(
+    siteBindings.email ||
+    account.email ||
+    email.address ||
+    (typeof email === 'string' && email)
+  )
+  const hasTelegram = Boolean(
+    siteBindings.telegram ||
+    telegram.user_id ||
+    telegram.username ||
+    telegram.chat_id ||
+    (typeof telegram === 'string' && telegram)
+  )
+  const bindings = []
+
+  if (hasEmail) {
+    bindings.push({
+      type: 'email',
+      icon: Mail,
+      label: 'Email привязан'
+    })
+  }
+  if (hasTelegram) {
+    bindings.push({
+      type: 'telegram',
+      icon: Send,
+      label: 'Telegram привязан'
+    })
+  }
+
+  return bindings
+}
+
 function formatDateTime(value) {
   if (!value) return '—'
   const date = new Date(value)
@@ -639,6 +701,45 @@ onMounted(() => {
   margin-top: 8px;
   padding-top: 8px;
   border-top: 1px solid rgba(255, 255, 255, 0.18);
+}
+
+.user-name-cell {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.user-name-text {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.user-binding-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 999px;
+  border: 1px solid currentColor;
+  flex: 0 0 auto;
+}
+
+.user-binding-badge--email {
+  color: #18a058;
+  background: rgba(24, 160, 88, 0.08);
+}
+
+.user-binding-badge--telegram {
+  color: #2080f0;
+  background: rgba(32, 128, 240, 0.08);
+}
+
+.user-binding-badge :deep(svg) {
+  color: currentColor;
+  stroke: currentColor;
 }
 
 </style>

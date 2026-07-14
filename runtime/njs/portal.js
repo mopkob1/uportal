@@ -15,9 +15,8 @@ var TEMPLATE_CAPTIONS = {
         redirectStartsIn: 'Redirect starts in',
         downloadStartsIn: 'Download starts in',
         secondsLabel: 'sec.',
-        goNow: 'Go now',
-        downloadNow: 'Download now',
         fileLabel: 'File',
+        madeWithUportal: 'Made with UPORTAL',
         loading: 'Loading...',
         accessDenied: 'Access denied',
         linkExpired: 'Link expired or invalid',
@@ -39,9 +38,8 @@ var TEMPLATE_CAPTIONS = {
         redirectStartsIn: 'Переход начнётся через',
         downloadStartsIn: 'Скачивание начнётся через',
         secondsLabel: 'сек.',
-        goNow: 'Перейти сейчас',
-        downloadNow: 'Скачать сейчас',
         fileLabel: 'Файл',
+        madeWithUportal: 'Сделано на UPORTAL',
         loading: 'Загрузка...',
         accessDenied: 'Доступ запрещён',
         linkExpired: 'Ссылка истекла или недействительна',
@@ -63,9 +61,8 @@ var TEMPLATE_CAPTIONS = {
         redirectStartsIn: 'La redirección empieza en',
         downloadStartsIn: 'La descarga empieza en',
         secondsLabel: 'seg.',
-        goNow: 'Ir ahora',
-        downloadNow: 'Descargar ahora',
         fileLabel: 'Archivo',
+        madeWithUportal: 'Hecho con UPORTAL',
         loading: 'Cargando...',
         accessDenied: 'Acceso denegado',
         linkExpired: 'Enlace caducado o no válido',
@@ -180,9 +177,8 @@ function templateCaptionVars(lang) {
         REDIRECT_STARTS_IN: escHtml(c.redirectStartsIn),
         DOWNLOAD_STARTS_IN: escHtml(c.downloadStartsIn),
         SECONDS_LABEL: escHtml(c.secondsLabel),
-        GO_NOW: escHtml(c.goNow),
-        DOWNLOAD_NOW: escHtml(c.downloadNow),
         FILE_LABEL: escHtml(c.fileLabel),
+        MADE_WITH_UPORTAL: escHtml(c.madeWithUportal),
         LOADING: escHtml(c.loading),
         ACCESS_DENIED: escHtml(c.accessDenied),
         LINK_EXPIRED: escHtml(c.linkExpired)
@@ -765,6 +761,7 @@ async function dispatchShort(r) {
         varsr.DELAY = String(delay);
         varsr.OPEN_URL_JS = jsStr(signedOpenUrl(r, meta));
         varsr.CLICK_URL_JS = jsStr(signedClickUrl(r, meta));
+        varsr.UPORTAL_GITHUB_URL = escAttr(cfg(r, 'uportal_github_url', 'https://github.com/mopkob1/uportal'));
         varsr.FILE_NAME = '';
 
         var htmlr = render(tplr, varsr);
@@ -790,6 +787,7 @@ async function dispatchShort(r) {
         varsd.DELAY = String(delayd);
         varsd.OPEN_URL_JS = jsStr(signedOpenUrl(r, meta));
         varsd.DOWNLOAD_URL_JS = jsStr(signedDownloadUrl(r, meta));
+        varsd.UPORTAL_GITHUB_URL = escAttr(cfg(r, 'uportal_github_url', 'https://github.com/mopkob1/uportal'));
         varsd.FILE_NAME = escHtml(meta.filename || meta.file || meta.token);
 
         var htmld = render(tpld, varsd);

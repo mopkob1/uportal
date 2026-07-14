@@ -174,7 +174,7 @@
 
 <script setup>
 import { CopyOutline } from '@vicons/ionicons5'
-import { ExternalLink, FingerprintPattern, Lock, LockOpen, Plus, RefreshCw, Timer, Trash2 } from 'lucide-vue-next'
+import { Download, ExternalLink, FingerprintPattern, Lock, LockOpen, Plus, RefreshCw, Timer, Trash2 } from 'lucide-vue-next'
 import { NIcon, NTooltip } from 'naive-ui'
 import { computed, h, nextTick, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue'
 import { useStore } from 'vuex'
@@ -431,13 +431,20 @@ const childColumns = [
     render(row) {
       const anchor = buildMarkdownText(row) || '—'
       const copyValue = buildAnchorCopyValue(row)
+      const shortUrl = getShortUrl(row)
 
-      return h('div', [
+      const children = [
         copyCell({
           text: anchor,
           copy: copyValue
         })
-      ])
+      ]
+
+      if (shortUrl) {
+        children.push(downloadQrIconButton(row, shortUrl))
+      }
+
+      return h('div', { class: 'anchor-link-actions' }, children)
     }
   },
   {
@@ -1033,6 +1040,35 @@ function getShortUrl(row) {
   return `${serverUrl}/s/${short}`
 }
 
+function getShortId(row, shortUrl = getShortUrl(row)) {
+  const direct = row.short_id || row.shortId || row.raw?.short_id || row.raw?.shortId || ''
+  if (direct) return sanitizeFileName(direct)
+
+  const candidates = [
+    row.short,
+    row.raw?.short,
+    row.short_url,
+    row.shortlink,
+    shortUrl
+  ].filter(Boolean)
+
+  for (const candidate of candidates) {
+    const value = String(candidate || '')
+    const match = value.match(/\/s\/([^/?#]+)/)
+    if (match?.[1]) return sanitizeFileName(decodeURIComponent(match[1]))
+    if (/^[A-Za-z0-9._-]{3,128}$/.test(value)) return sanitizeFileName(value)
+  }
+
+  return sanitizeFileName(row.token || 'uportal-qr')
+}
+
+function sanitizeFileName(value) {
+  return String(value || 'uportal-qr')
+      .replace(/[^A-Za-z0-9._-]+/g, '-')
+      .replace(/^-+|-+$/g, '')
+      .slice(0, 120) || 'uportal-qr'
+}
+
 function escapeMarkdownLinkText(value) {
   return String(value || '').replace(/([\\[\]])/g, '\\$1')
 }
@@ -1593,6 +1629,111 @@ function renderRedirectUrlCell(row, shortUrl) {
   }, children)
 }
 
+function downloadQrIconButton(row, shortUrl) {
+  const shortId = getShortId(row, shortUrl)
+
+  return h(NTooltip, {}, {
+    trigger: () => h('span', {
+      class: 'qr-download-button',
+      onClick: async (event) => {
+        event.stopPropagation()
+        await downloadShortLinkQrPng(shortUrl, shortId)
+      }
+    }, [
+      h(Download, { size: 15, strokeWidth: 1.8 })
+    ]),
+    default: () => `Скачать QR PNG: ${shortId}.png`
+  })
+}
+
+async function downloadShortLinkQrPng(shortUrl, shortId) {
+  if (!shortUrl) {
+    message.warning(captions.nothingToCopy)
+    return
+  }
+
+  try {
+    const canvas = document.createElement('canvas')
+    canvas.width = 600
+    canvas.height = 600
+    const ctx = canvas.getContext('2d')
+    if (!ctx) throw new Error('Canvas is not available')
+
+    ctx.fillStyle = '#ffffff'
+    ctx.fillRect(0, 0, canvas.width, canvas.height)
+
+    const qrImage = await loadQrImage(shortUrl)
+    ctx.imageSmoothingEnabled = false
+    ctx.drawImage(qrImage, 60, 60, 480, 480)
+    drawUportalQrEmblem(ctx)
+
+    const link = document.createElement('a')
+    link.download = `${shortId || 'uportal-qr'}.png`
+    link.href = canvas.toDataURL('image/png')
+    document.body.appendChild(link)
+    link.click()
+    link.remove()
+  } catch (error) {
+    message.error(`Не удалось скачать QR: ${error?.message || 'unknown error'}`)
+  }
+}
+
+function loadQrImage(shortUrl) {
+  const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=600x600&margin=24&format=png&data=${encodeURIComponent(shortUrl)}`
+
+  return new Promise((resolve, reject) => {
+    const image = new Image()
+    image.crossOrigin = 'anonymous'
+    image.onload = () => resolve(image)
+    image.onerror = () => reject(new Error('QR image load failed'))
+    image.src = qrUrl
+  })
+}
+
+function drawUportalQrEmblem(ctx) {
+  const center = 300
+  const box = 124
+  const radius = 20
+  const x = center - box / 2
+  const y = center - box / 2
+
+  ctx.save()
+  roundedRect(ctx, x, y, box, box, radius)
+  ctx.fillStyle = '#ffffff'
+  ctx.fill()
+  ctx.lineWidth = 8
+  ctx.strokeStyle = '#ffffff'
+  ctx.stroke()
+
+  roundedRect(ctx, x + 10, y + 10, box - 20, box - 20, 16)
+  ctx.fillStyle = '#165a36'
+  ctx.fill()
+
+  ctx.fillStyle = '#ffffff'
+  ctx.font = '700 34px Arial, Helvetica, sans-serif'
+  ctx.textAlign = 'center'
+  ctx.textBaseline = 'middle'
+  ctx.fillText('UP', center, center - 10)
+
+  ctx.font = '700 15px Arial, Helvetica, sans-serif'
+  ctx.fillText('ORTAL', center, center + 24)
+  ctx.restore()
+}
+
+function roundedRect(ctx, x, y, width, height, radius) {
+  ctx.beginPath()
+  ctx.moveTo(x + radius, y)
+  ctx.lineTo(x + width - radius, y)
+  ctx.quadraticCurveTo(x + width, y, x + width, y + radius)
+  ctx.lineTo(x + width, y + height - radius)
+  ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height)
+  ctx.lineTo(x + radius, y + height)
+  ctx.quadraticCurveTo(x, y + height, x, y + height - radius)
+  ctx.lineTo(x, y + radius)
+  ctx.quadraticCurveTo(x, y, x + radius, y)
+  ctx.closePath()
+}
+
 function copyIconButton({ icon, copy, title }) {
   return h(NTooltip, {}, {
     trigger: () => h('span', {
@@ -2037,6 +2178,34 @@ function getCampaignReportStatus(row) {
 }
 
 .publications-add-button :deep(svg) {
+  color: currentColor;
+  stroke: currentColor;
+}
+
+.anchor-link-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.qr-download-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  color: rgba(31, 34, 37, 0.72);
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+.qr-download-button:hover {
+  color: #18a058;
+  background: rgba(24, 160, 88, 0.09);
+}
+
+.qr-download-button :deep(svg) {
   color: currentColor;
   stroke: currentColor;
 }
