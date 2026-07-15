@@ -9,7 +9,15 @@
         <n-layout style="min-height: 100vh">
 
           <n-layout-header bordered class="app-header">
-            <strong>UPORTAL</strong>
+            <a
+                class="app-logo"
+                :href="uportalHomeUrl"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="UPORTAL"
+            >
+              <img :src="uportalLogo" alt="UPORTAL" />
+            </a>
 
             <div class="app-header-spacer"></div>
 
@@ -78,9 +86,12 @@ import StatisticsPage from './pages/StatisticsPage.vue'
 import DictionaryPage from './pages/DictionaryPage.vue'
 import UsersPage from './pages/UsersPage.vue'
 import { getCaptionLanguage, getCaptions } from './captions'
+import uportalLogo from './assets/uportal-logo.svg'
+import { DEFAULT_SERVER_URL } from './config/server'
 const store = useStore()
 const caps = getCaptions('app')
 const captionLanguage = getCaptionLanguage()
+const uportalHomeUrl = DEFAULT_SERVER_URL
 const naiveLocale = computed(() => captionLanguage === 'ru' ? ruRU : null)
 const naiveDateLocale = computed(() => captionLanguage === 'ru' ? dateRuRU : null)
 const uiFontFamily = 'Arial, Helvetica, sans-serif'
@@ -167,6 +178,18 @@ function refreshCurrentPage(payload) {
   display: flex;
   align-items: center;
   gap: 18px;
+}
+
+.app-logo {
+  display: inline-flex;
+  align-items: center;
+  flex: 0 0 auto;
+}
+
+.app-logo img {
+  display: block;
+  width: 150px;
+  height: auto;
 }
 
 .app-header-spacer {

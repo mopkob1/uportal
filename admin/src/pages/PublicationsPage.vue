@@ -198,6 +198,7 @@ import LinkEditorModal from '../publications/LinkEditorModal.vue'
 import useLinkReport from '../publications/useLinkReport'
 import { deleteDraftAssetsForDraft } from '../services/draftAssetStore'
 import { formatCaption, getCaptions } from '../captions'
+import uportalLogo from '../assets/uportal-logo.svg'
 
 const pageCaps = getCaptions('publications')
 const columnLabels = pageCaps.columns
@@ -1672,7 +1673,7 @@ async function downloadShortLinkQrPng(shortUrl, shortId) {
     const qrImage = await loadQrImage(qrData)
     ctx.imageSmoothingEnabled = false
     ctx.drawImage(qrImage, 60, 60, 480, 480)
-    drawUportalQrEmblem(ctx)
+    await drawUportalQrLogo(ctx)
 
     const link = document.createElement('a')
     link.download = `${shortId || 'uportal-qr'}.png`
@@ -1698,37 +1699,52 @@ function normalizeQrPayloadUrl(shortUrl) {
 
 function loadQrImage(qrData) {
   const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=600x600&margin=24&ecc=H&format=png&data=${encodeURIComponent(qrData)}`
+  return loadImage(qrUrl, 'QR image load failed', 'anonymous')
+}
 
+function loadImage(src, errorMessage, crossOrigin = '') {
   return new Promise((resolve, reject) => {
     const image = new Image()
-    image.crossOrigin = 'anonymous'
+    if (crossOrigin) image.crossOrigin = crossOrigin
     image.onload = () => resolve(image)
-    image.onerror = () => reject(new Error('QR image load failed'))
-    image.src = qrUrl
+    image.onerror = () => reject(new Error(errorMessage))
+    image.src = src
   })
 }
 
-function drawUportalQrEmblem(ctx) {
+async function drawUportalQrLogo(ctx) {
   const center = 300
-  const width = 82
-  const height = 34
+  const width = 108
+  const height = 30
+  const paddingX = 12
+  const paddingY = 9
+  const plateWidth = width + paddingX * 2
+  const plateHeight = height + paddingY * 2
   const radius = 10
-  const x = center - width / 2
-  const y = center - height / 2
+  const plateX = center - plateWidth / 2
+  const plateY = center - plateHeight / 2
 
   ctx.save()
-  roundedRect(ctx, x, y, width, height, radius)
+  roundedRect(ctx, plateX, plateY, plateWidth, plateHeight, radius)
   ctx.fillStyle = '#ffffff'
   ctx.fill()
-  ctx.lineWidth = 3
+  ctx.lineWidth = 4
   ctx.strokeStyle = '#ffffff'
   ctx.stroke()
 
-  ctx.fillStyle = '#165a36'
-  ctx.font = '700 16px Arial, Helvetica, sans-serif'
-  ctx.textAlign = 'center'
-  ctx.textBaseline = 'middle'
-  ctx.fillText('U portal', center, center + 1)
+  try {
+    const logo = await loadImage(uportalLogo, 'UPORTAL logo load failed')
+    ctx.imageSmoothingEnabled = true
+    ctx.drawImage(logo, center - width / 2, center - height / 2, width, height)
+    ctx.imageSmoothingEnabled = false
+  } catch {
+    ctx.fillStyle = '#165a36'
+    ctx.font = '700 16px Arial, Helvetica, sans-serif'
+    ctx.textAlign = 'center'
+    ctx.textBaseline = 'middle'
+    ctx.fillText('U portal', center, center + 1)
+  }
+
   ctx.restore()
 }
 

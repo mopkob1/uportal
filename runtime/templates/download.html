@@ -10,7 +10,10 @@
   <meta property="og:image" content="{{IMAGE}}"/>
   <style>
     body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;margin:24px;background:#f7f7f8;color:#111}
-    .wrap{max-width:760px;margin:0 auto;background:#fff;border:1px solid #e5e7eb;border-radius:16px;padding:24px}
+    .wrap{position:relative;max-width:760px;margin:0 auto;background:#fff;border:1px solid #e5e7eb;border-radius:16px;padding:24px}
+    .brand-logo{position:absolute;top:18px;right:20px;display:block}
+    .brand-logo svg{display:block;width:128px;height:auto}
+    h1{padding-right:150px}
     .muted{opacity:.75}
     .powered{margin-top:28px;padding-top:18px;border-top:1px solid #e5e7eb;font-size:14px;color:#4b5563}
     .powered a{color:#2563eb;text-decoration:none;font-weight:700}
@@ -19,13 +22,14 @@
 </head>
 <body>
   <div class="wrap">
+    <a class="brand-logo" href="{{UPORTAL_GITHUB_URL}}" target="_blank" rel="noopener noreferrer" aria-label="UPORTAL">{{UPORTAL_LOGO_SVG}}</a>
     <h1>{{TITLE}}</h1>
     <p class="muted">{{DESCRIPTION}}</p>
     <p>{{FILE_LABEL}}: <b>{{FILE_NAME}}</b></p>
     <p>{{DOWNLOAD_STARTS_IN}} <b id="sec">{{DELAY}}</b> {{SECONDS_LABEL}}</p>
     <div class="powered">
       {{POWERED_BY_PREFIX}} <a href="{{UPORTAL_GITHUB_URL}}" target="_blank" rel="noopener noreferrer">UPORTAL</a>.
-      <a href="{{UPORTAL_GITHUB_URL}}" target="_blank" rel="noopener noreferrer">{{POWERED_BY_CTA}}</a>
+      {{POWERED_BY_CTA_PREFIX}} <a href="{{UPORTAL_GITHUB_URL}}" target="_blank" rel="noopener noreferrer">{{POWERED_BY_CTA_LINK}}</a>
     </div>
   </div>
 

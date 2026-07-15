@@ -17,7 +17,8 @@ var TEMPLATE_CAPTIONS = {
         secondsLabel: 'sec.',
         fileLabel: 'File',
         poweredByPrefix: 'Powered by',
-        poweredByCta: 'Do the same',
+        poweredByCtaPrefix: 'Do the',
+        poweredByCtaLink: 'same',
         loading: 'Loading...',
         accessDenied: 'Access denied',
         linkExpired: 'Link expired or invalid',
@@ -41,7 +42,8 @@ var TEMPLATE_CAPTIONS = {
         secondsLabel: 'сек.',
         fileLabel: 'Файл',
         poweredByPrefix: 'Работает на',
-        poweredByCta: 'Сделайте так же',
+        poweredByCtaPrefix: 'Сделайте',
+        poweredByCtaLink: 'так же',
         loading: 'Загрузка...',
         accessDenied: 'Доступ запрещён',
         linkExpired: 'Ссылка истекла или недействительна',
@@ -65,7 +67,8 @@ var TEMPLATE_CAPTIONS = {
         secondsLabel: 'seg.',
         fileLabel: 'Archivo',
         poweredByPrefix: 'Creado con',
-        poweredByCta: 'Hazlo también',
+        poweredByCtaPrefix: 'Hazlo',
+        poweredByCtaLink: 'también',
         loading: 'Cargando...',
         accessDenied: 'Acceso denegado',
         linkExpired: 'Enlace caducado o no válido',
@@ -182,7 +185,8 @@ function templateCaptionVars(lang) {
         SECONDS_LABEL: escHtml(c.secondsLabel),
         FILE_LABEL: escHtml(c.fileLabel),
         POWERED_BY_PREFIX: escHtml(c.poweredByPrefix),
-        POWERED_BY_CTA: escHtml(c.poweredByCta),
+        POWERED_BY_CTA_PREFIX: escHtml(c.poweredByCtaPrefix),
+        POWERED_BY_CTA_LINK: escHtml(c.poweredByCtaLink),
         LOADING: escHtml(c.loading),
         ACCESS_DENIED: escHtml(c.accessDenied),
         LINK_EXPIRED: escHtml(c.linkExpired)
@@ -321,6 +325,13 @@ function pageDir(r, publicationId, token) {
 
 function templatePath(r, name) {
     return cfg(r, 'uportal_template_root', '/data/files/uportal/templates') + '/' + name;
+}
+
+function addBrandVars(r, vars) {
+    var logo = readText(templatePath(r, 'uportal-logo.svg'));
+    vars.UPORTAL_GITHUB_URL = escAttr(cfg(r, 'uportal_github_url', 'https://github.com/mopkob1/uportal'));
+    vars.UPORTAL_LOGO_SVG = logo || '<span>UPORTAL</span>';
+    return vars;
 }
 
 function readMeta(r, publicationId, token) {
@@ -653,6 +664,7 @@ function requirePasswordPage(r, meta) {
     vars.PASSWORD_HINT = escHtml(meta.password_hint || '');
     vars.AUTH_URL = escAttr('/api/auth/' + meta.publication_id + '/' + meta.token);
     vars.REDIRECT_TO = escAttr(redirectTo);
+    addBrandVars(r, vars);
 
     var html = render(tpl, vars);
     r.headersOut['Content-Type'] = 'text/html; charset=utf-8';
@@ -765,7 +777,7 @@ async function dispatchShort(r) {
         varsr.DELAY = String(delay);
         varsr.OPEN_URL_JS = jsStr(signedOpenUrl(r, meta));
         varsr.CLICK_URL_JS = jsStr(signedClickUrl(r, meta));
-        varsr.UPORTAL_GITHUB_URL = escAttr(cfg(r, 'uportal_github_url', 'https://github.com/mopkob1/uportal'));
+        addBrandVars(r, varsr);
         varsr.FILE_NAME = '';
 
         var htmlr = render(tplr, varsr);
@@ -791,7 +803,7 @@ async function dispatchShort(r) {
         varsd.DELAY = String(delayd);
         varsd.OPEN_URL_JS = jsStr(signedOpenUrl(r, meta));
         varsd.DOWNLOAD_URL_JS = jsStr(signedDownloadUrl(r, meta));
-        varsd.UPORTAL_GITHUB_URL = escAttr(cfg(r, 'uportal_github_url', 'https://github.com/mopkob1/uportal'));
+        addBrandVars(r, varsd);
         varsd.FILE_NAME = escHtml(meta.filename || meta.file || meta.token);
 
         var htmld = render(tpld, varsd);
@@ -1100,7 +1112,9 @@ async function pixelGate(r) {
 
 function fallback(r) {
     var tpl = readText(templatePath(r, 'link-fallback.html'));
-    var html = tpl === null ? null : render(tpl, templateCaptionVars(requestLang(r)));
+    var vars = templateCaptionVars(requestLang(r));
+    addBrandVars(r, vars);
+    var html = tpl === null ? null : render(tpl, vars);
     if (html === null) html = '<!doctype html><html><body><h1>Link unavailable</h1></body></html>';
     r.headersOut['Content-Type'] = 'text/html; charset=utf-8';
     r.headersOut['Cache-Control'] = 'no-store';
