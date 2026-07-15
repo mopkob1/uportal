@@ -271,6 +271,27 @@ function safeDownloadName(s, fallback) {
     return s || fallback;
 }
 
+function publicAssetContentType(rel, bin) {
+    if (bin && bin.length >= 3 && bin[0] === 0xff && bin[1] === 0xd8 && bin[2] === 0xff) {
+        return 'image/jpeg';
+    }
+    if (bin && bin.length >= 8 &&
+        bin[0] === 0x89 && bin[1] === 0x50 && bin[2] === 0x4e && bin[3] === 0x47 &&
+        bin[4] === 0x0d && bin[5] === 0x0a && bin[6] === 0x1a && bin[7] === 0x0a) {
+        return 'image/png';
+    }
+    if (bin && bin.length >= 6) {
+        var gif = String.fromCharCode(bin[0], bin[1], bin[2], bin[3], bin[4], bin[5]);
+        if (gif === 'GIF87a' || gif === 'GIF89a') return 'image/gif';
+    }
+    var lower = String(rel || '').toLowerCase();
+    if (lower.endsWith('.jpg') || lower.endsWith('.jpeg')) return 'image/jpeg';
+    if (lower.endsWith('.png')) return 'image/png';
+    if (lower.endsWith('.gif')) return 'image/gif';
+    if (lower.endsWith('.webp')) return 'image/webp';
+    return 'application/octet-stream';
+}
+
 function b64url(buf) {
     return buf.toString('base64')
         .replace(/\+/g, '-')
@@ -1048,6 +1069,7 @@ function publicAsset(r) {
     }
     if (bin === null) return r.return(404);
 
+    r.headersOut['Content-Type'] = publicAssetContentType(rel, bin);
     r.headersOut['Cache-Control'] = 'public, max-age=3600';
     r.return(200, bin);
 }
