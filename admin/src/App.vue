@@ -12,8 +12,6 @@
             <a
                 class="app-logo"
                 :href="uportalHomeUrl"
-                target="_blank"
-                rel="noopener noreferrer"
                 aria-label="UPORTAL"
             >
               <img :src="uportalLogo" alt="UPORTAL" />

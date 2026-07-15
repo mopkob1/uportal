@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="runtime/templates/uportal-logo.svg" alt="UPORTAL" width="360">
+</p>
+
 # UPORTAL: Open-Source Self-Hosted Email Tracking, Link Tracking and Controlled Publications
 
 ![Version](https://img.shields.io/badge/version-0.2.18-blue)
