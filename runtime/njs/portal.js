@@ -217,11 +217,18 @@ function wantsHtmlPreview(r) {
     return accept.indexOf('image/') < 0;
 }
 
+function publicAssetUrl(r, meta) {
+    if (!meta || !meta.image) return '';
+    var base = cfg(r, 'uportal_base_url', 'http://localhost:8080');
+    return base + '/assets-public/' +
+        meta.publication_id + '/' +
+        meta.token + '/' +
+        safeSeg(meta.image, 'cover.png');
+}
+
 function renderShortPreview(r, meta, fallbackTitle) {
     var lang = metaLang(meta);
-    var image = meta.image
-        ? '/assets-public/' + meta.publication_id + '/' + meta.token + '/' + safeSeg(meta.image, 'cover.png')
-        : '';
+    var image = publicAssetUrl(r, meta);
     var title = linkPreviewTitle(meta, fallbackTitle);
     var description = linkPreviewDescription(meta);
 
@@ -738,9 +745,7 @@ async function dispatchShort(r) {
         var capsp = captions(langp);
         var base = cfg(r, 'uportal_base_url', 'http://localhost:8080');
         var targetUrl = '/p/' + meta.publication_id + '/' + meta.token + '/';
-        var imageUrl = meta.image
-            ? base + '/assets-public/' + meta.publication_id + '/' + meta.token + '/' + safeSeg(meta.image, 'cover.png')
-            : '';
+        var imageUrl = publicAssetUrl(r, meta);
 
         if (tplp === null) {
             return r.return(302, targetUrl);
@@ -772,7 +777,7 @@ async function dispatchShort(r) {
         var varsr = templateCaptionVars(langr);
         varsr.TITLE = escHtml(linkPreviewTitle(meta, captions(langr).redirectTitle));
         varsr.DESCRIPTION = escHtml(linkPreviewDescription(meta));
-        varsr.IMAGE = escAttr(meta.image ? '/assets-public/' + meta.publication_id + '/' + meta.token + '/' + safeSeg(meta.image, 'cover.png') : '');
+        varsr.IMAGE = escAttr(publicAssetUrl(r, meta));
         varsr.TARGET_URL = escAttr(meta.target_url || '');
         varsr.DELAY = String(delay);
         varsr.OPEN_URL_JS = jsStr(signedOpenUrl(r, meta));
@@ -797,7 +802,7 @@ async function dispatchShort(r) {
         var varsd = templateCaptionVars(langd);
         varsd.TITLE = escHtml(linkPreviewTitle(meta, captions(langd).downloadTitle));
         varsd.DESCRIPTION = escHtml(linkPreviewDescription(meta));
-        varsd.IMAGE = escAttr(meta.image ? '/assets-public/' + meta.publication_id + '/' + meta.token + '/' + safeSeg(meta.image, 'cover.png') : '');
+        varsd.IMAGE = escAttr(publicAssetUrl(r, meta));
         varsd.PUBLICATION_ID = escAttr(meta.publication_id);
         varsd.TOKEN = escAttr(meta.token);
         varsd.DELAY = String(delayd);
