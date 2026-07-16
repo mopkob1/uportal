@@ -67,7 +67,6 @@ fi
 owner_json="$(mktemp)"
 if [ -n "$owner_file" ] && [ -f "$owner_file" ]; then
   jq '{
-    token_file: (input_filename | split("/") | last),
     user: (.user // ""),
     user_id: (.user_id // ""),
     email: (.site.account.email // .site.email.address // .email // ""),
