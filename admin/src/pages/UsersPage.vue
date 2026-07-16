@@ -118,6 +118,7 @@ const query = ref('')
 const loading = ref(false)
 const editorVisible = ref(false)
 const selectedItem = ref(null)
+const MIN_PAGE_SIZE = 10
 
 const tokens = computed(() => store.state.tokens || [])
 const hasAdminToken = computed(() => !!store.state.adminToken)
@@ -236,15 +237,15 @@ const columns = [
 
 const pagination = computed(() => ({
   page: pager.value.page,
-  pageSize: pager.value.limit,
+  pageSize: normalizePageSize(pager.value.limit),
   itemCount: pager.value.total,
   showSizePicker: true,
   pageSizes: [10, 20, 50, 100],
   onChange: async (page) => {
-    await load({ page, limit: pager.value.limit })
+    await load({ page, limit: normalizePageSize(pager.value.limit) })
   },
   onUpdatePageSize: async (limit) => {
-    await load({ page: 1, limit })
+    await load({ page: 1, limit: normalizePageSize(limit) })
   }
 }))
 
@@ -256,7 +257,7 @@ function saveAdminAuth() {
 
   adminPanelExpanded.value = adminToken.value ? [] : ['admin-access']
   message.success(captions.adminAccessSaved)
-  load({ page: 1, limit: pager.value.limit || 10 })
+  load({ page: 1, limit: normalizePageSize(pager.value.limit) })
 }
 
 async function load(params = {}) {
@@ -265,7 +266,7 @@ async function load(params = {}) {
   try {
     const result = await store.dispatch('loadTokens', {
       page: params.page || pager.value.page || 1,
-      limit: params.limit || pager.value.limit || 10,
+      limit: normalizePageSize(params.limit || pager.value.limit),
       query: query.value || ''
     })
 
@@ -280,7 +281,7 @@ async function load(params = {}) {
 }
 
 async function applySearch() {
-  await load({ page: 1, limit: pager.value.limit || 10 })
+  await load({ page: 1, limit: normalizePageSize(pager.value.limit) })
 }
 
 async function applySearchAfterClear() {
@@ -315,7 +316,7 @@ async function saveItem(item) {
     editorVisible.value = false
     await load({
       page: item.token ? pager.value.page || 1 : 1,
-      limit: pager.value.limit || 10
+      limit: normalizePageSize(pager.value.limit)
     })
   } catch {
     message.error(captions.tokenSaveError)
@@ -328,7 +329,7 @@ async function deleteItem(row) {
     message.success(captions.tokenDeleted)
     await load({
       page: pager.value.page || 1,
-      limit: pager.value.limit || 10
+      limit: normalizePageSize(pager.value.limit)
     })
   } catch {
     message.error(captions.tokenDeleteError)
@@ -357,7 +358,7 @@ async function toggleStatus(row) {
     }))
     await load({
       page: pager.value.page || 1,
-      limit: pager.value.limit || 10
+      limit: normalizePageSize(pager.value.limit)
     })
   } catch {
     message.error(captions.statusChangeError)
@@ -390,7 +391,7 @@ async function saveClientSelection(row, type, value) {
     message.success(captions.clientSaved)
     await load({
       page: pager.value.page || 1,
-      limit: pager.value.limit || 10
+      limit: normalizePageSize(pager.value.limit)
     })
   } catch {
     message.error(captions.clientSaveError)
@@ -519,26 +520,28 @@ function userNameCell(row) {
   const name = row.user || row.payload?.user || row.user_id || row.payload?.user_id || '—'
   const bindings = tokenBindings(row)
 
-  return h(NSpace, { align: 'center', size: 6, wrap: false }, {
-    default: () => [
-      h('span', { class: 'mono' }, name),
-    ...bindings.map(binding => h(NTooltip, { placement: 'top' }, {
-      trigger: () => h(NTag, {
-        size: 'small',
-        round: true,
-        bordered: false,
-        type: binding.tagType,
-        title: binding.label
-      }, {
-        icon: () => h(NIcon, { size: 13 }, {
-          default: () => h(binding.icon, { size: 13, strokeWidth: 1.9 })
-        }),
-        default: () => ''
-      }),
-      default: () => binding.label
-    }))
-    ]
-  })
+  return h('span', { class: 'user-name-cell' }, [
+    h('span', { class: 'mono user-name-text' }, name),
+    h('span', { class: 'user-binding-markers' },
+      bindings.map(binding => h(NTooltip, { placement: 'top' }, {
+        trigger: () => h('span', {
+          class: ['user-binding-marker', `user-binding-marker--${binding.type}`],
+          title: binding.label
+        }, [
+          h(NIcon, { size: 13 }, {
+            default: () => h(binding.icon, { size: 13, strokeWidth: 1.9 })
+          })
+        ]),
+        default: () => binding.label
+      }))
+    )
+  ])
+}
+
+function normalizePageSize(value) {
+  const parsed = Number(value)
+  if (!Number.isFinite(parsed)) return MIN_PAGE_SIZE
+  return Math.max(MIN_PAGE_SIZE, Math.floor(parsed))
 }
 
 function tokenBindings(row) {
@@ -673,7 +676,7 @@ function formatScope(scope) {
 }
 
 onMounted(() => {
-  load({ page: 1, limit: pager.value.limit || 10 })
+  load({ page: 1, limit: normalizePageSize(pager.value.limit) })
 })
 </script>
 
@@ -702,6 +705,54 @@ onMounted(() => {
 }
 
 .user-action-button :deep(svg) {
+  color: currentColor;
+  stroke: currentColor;
+}
+
+.user-name-cell {
+  display: inline-grid;
+  grid-template-columns: minmax(0, max-content) auto;
+  align-items: center;
+  column-gap: 8px;
+  min-height: 24px;
+  max-width: 100%;
+}
+
+.user-name-text {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.user-binding-markers {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 20px;
+}
+
+.user-binding-marker {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  flex: 0 0 20px;
+}
+
+.user-binding-marker--email {
+  color: #18a058;
+  background: rgba(24, 160, 88, 0.12);
+}
+
+.user-binding-marker--telegram {
+  color: #2080f0;
+  background: rgba(32, 128, 240, 0.12);
+}
+
+.user-binding-marker :deep(svg) {
   color: currentColor;
   stroke: currentColor;
 }

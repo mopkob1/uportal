@@ -264,10 +264,11 @@ export default createStore({
     },
 
     setTokens(state, payload) {
+      const limit = normalizeMinimumPageSize(payload.limit)
       state.tokens = payload.items || []
       state.tokensPager = {
         page: payload.page || 1,
-        limit: payload.limit || 10,
+        limit,
         total: payload.total || 0,
         has_next: !!payload.has_next
       }
@@ -461,7 +462,10 @@ export default createStore({
           )
           : await tokenSelfGet()
 
-      const paged = extractPaged(data, params)
+      const paged = extractPaged(data, {
+        ...params,
+        limit: normalizeMinimumPageSize(params.limit)
+      })
       commit('setTokens', paged)
       return paged
     },
@@ -629,20 +633,32 @@ function normalizeOffset(value) {
 
 function extractPaged(payload, filters = {}) {
   if (Array.isArray(payload?.message) && payload.message[0]?.items) {
-    return payload.message[0]
+    return {
+      ...payload.message[0],
+      limit: normalizeMinimumPageSize(payload.message[0].limit)
+    }
   }
 
   if (Array.isArray(payload?.items)) {
-    return payload
+    return {
+      ...payload,
+      limit: normalizeMinimumPageSize(payload.limit)
+    }
   }
 
   return {
     items: [],
     page: filters.page || 1,
-    limit: filters.limit || 50,
+    limit: normalizeMinimumPageSize(filters.limit),
     total: 0,
     has_next: false
   }
+}
+
+function normalizeMinimumPageSize(value) {
+  const number = Number(value)
+  if (!Number.isFinite(number)) return 10
+  return Math.max(10, Math.trunc(number))
 }
 
 function normalizeClicksLimit(value) {
