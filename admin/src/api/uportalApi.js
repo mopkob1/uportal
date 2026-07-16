@@ -6,6 +6,8 @@ const api = axios.create({
   timeout: 30000
 })
 
+const UPLOAD_TIMEOUT_MS = 10 * 60 * 1000
+
 api.interceptors.request.use((config) => {
   const serverUrl = normalizeServerUrl(store.state.serverUrl)
   const authHeader = store.state.authHeader || 'X-User-Token'
@@ -158,6 +160,7 @@ async function uploadPublicationFile(publicationId, token, filename, file) {
       `/upload/${encodeURIComponent(publicationId)}/${encodeURIComponent(token)}/${encodeURIComponent(filename)}`,
       file,
       {
+        timeout: UPLOAD_TIMEOUT_MS,
         headers: {
           'Content-Type': file.type || 'application/octet-stream'
         }
