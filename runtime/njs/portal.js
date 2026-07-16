@@ -515,7 +515,31 @@ function signedDownloadUrl(r, meta) {
     return signedTrackUrl(r, meta, 'download');
 }
 
-async function trackPixelEvent(r, publicationId, token) {
+function requestOriginalUri(r) {
+    var args = String(r.variables.args || '');
+    return r.uri + (args ? '?' + args : '');
+}
+
+function requestHeader(r, name) {
+    return String(r.headersIn[name] || '');
+}
+
+function pixelNotifyQuery(r, uid) {
+    return [
+        ['uid', uid || ''],
+        ['original_uri', requestOriginalUri(r)],
+        ['xff', requestHeader(r, 'X-Forwarded-For')],
+        ['proto', requestHeader(r, 'X-Forwarded-Proto') || String(r.variables.scheme || '')],
+        ['host', requestHeader(r, 'Host')],
+        ['ua', requestHeader(r, 'User-Agent')],
+        ['referer', requestHeader(r, 'Referer')],
+        ['accept_language', requestHeader(r, 'Accept-Language')]
+    ].map(function (pair) {
+        return encodeURIComponent(pair[0]) + '=' + encodeURIComponent(String(pair[1] || ''));
+    }).join('&');
+}
+
+async function trackPixelEvent(r, publicationId, token, uid) {
     try {
         await r.subrequest(
             '/__uportal_track_pixel_shhoook/' +
@@ -543,7 +567,9 @@ async function trackPixelEvent(r, publicationId, token) {
             '/__uportal_notify_telegram_pixel/' +
             encodeURIComponent(publicationId) +
             '/' +
-            encodeURIComponent(token),
+            encodeURIComponent(token) +
+            '?' +
+            pixelNotifyQuery(r, uid),
             { method: 'POST' }
         );
     } catch (e) {}
@@ -749,14 +775,14 @@ async function dispatchShort(r) {
     meta.token = meta.token || ref.token;
     meta.short_id = meta.short_id || shortId;
 
-    ensureUidCookie(r);
+    var uid = ensureUidCookie(r);
 
     if (meta.type === 'pixel') {
         if (!enforceSticky(r, meta)) {
             return safeRedirect(r, getFallback(r, meta));
         }
 
-        await trackPixelEvent(r, meta.publication_id, meta.token);
+        await trackPixelEvent(r, meta.publication_id, meta.token, uid);
         return servePixelImage(r);
     }
 
@@ -1139,10 +1165,10 @@ async function pixelGate(r) {
     meta.publication_id = meta.publication_id || pt.publication_id;
     meta.token = meta.token || pt.token;
 
-    ensureUidCookie(r);
+    var uid = ensureUidCookie(r);
     if (!enforceSticky(r, meta)) return r.return(404);
 
-    await trackPixelEvent(r, pt.publication_id, pt.token);
+    await trackPixelEvent(r, pt.publication_id, pt.token, uid);
 
     return servePixelImage(r);
 }
