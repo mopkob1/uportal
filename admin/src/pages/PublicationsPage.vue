@@ -174,7 +174,7 @@
 
 <script setup>
 import { CopyOutline } from '@vicons/ionicons5'
-import { Download, ExternalLink, FingerprintPattern, Lock, LockOpen, Plus, RefreshCw, Timer, Trash2 } from 'lucide-vue-next'
+import { Download, ExternalLink, FingerprintPattern, Lock, LockOpen, Plus, RefreshCw, Send, Timer, Trash2 } from 'lucide-vue-next'
 import { NIcon, NTooltip } from 'naive-ui'
 import { computed, h, nextTick, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue'
 import { useStore } from 'vuex'
@@ -215,6 +215,15 @@ const tooltips = pageCaps.tooltips
 
 const store = useStore()
 const message = useMessage()
+const canUseTelegramNotify = computed(() => {
+  const session = store.state.siteSession || {}
+  const scope = Array.isArray(session.scope) ? session.scope : []
+  const limits = session.limits || {}
+
+  return store.state.authMode === 'site-session' &&
+      Boolean(session.bindings?.telegram) &&
+      (scope.includes('publication:telegram_notify') || limits.telegramNotifications === true)
+})
 
 const { renderTypeBadge, loadLinkReport, loadPublicationLinkReports, reportCache } = useLinkReport(captions)
 
@@ -552,8 +561,18 @@ const childColumns = [
             inactiveIcon: FingerprintPattern,
             onClick: () => toggleSticky(row)
           }),
+          canUseTelegramNotify.value ? accessIcon({
+            active: hasTelegramNotify(row),
+            activeTitle: tooltips.telegramNotifyActive,
+            inactiveTitle: tooltips.telegramNotifyInactive,
+            activeIcon: Send,
+            inactiveIcon: Send,
+            activeColor: '#2080f0',
+            inactiveColor: '#18a058',
+            onClick: () => toggleTelegramNotify(row)
+          }) : null,
           renderDelayEditor(row)
-        ]
+        ].filter(Boolean)
       })
     }
   }
@@ -1320,6 +1339,7 @@ function normalizeLink(raw) {
     password_protected: !!(raw.password_protected || raw.meta?.password_protected),
     password_hint: raw.password_hint || raw.meta?.password_hint || '',
     sticky: !!raw.sticky,
+    telegram_notify: !!(raw.telegram_notify || raw.meta?.telegram_notify),
     remaining_clicks: raw.remaining_clicks,
     published_at: raw.published_at || raw.meta?.published_at || '',
     last_action: raw.last_action || null,
@@ -1523,6 +1543,10 @@ async function toggleSticky(row) {
   await saveSticky(!hasSticky(row), row)
 }
 
+async function toggleTelegramNotify(row) {
+  await saveTelegramNotify(!hasTelegramNotify(row), row)
+}
+
 async function saveSticky(value, row = accessRow.value) {
   if (!row) return
 
@@ -1539,6 +1563,27 @@ async function saveSticky(value, row = accessRow.value) {
     message.success(value ? captions.stickySavedOn : captions.stickySavedOff)
   } catch (error) {
     message.error(formatCaption(captions.stickySaveError, { error: formatApiError(error) }))
+  } finally {
+    accessSaving.value = false
+  }
+}
+
+async function saveTelegramNotify(value, row) {
+  if (!row || !canUseTelegramNotify.value) return
+
+  accessSaving.value = true
+
+  try {
+    await store.dispatch('setPublicationTelegramNotify', {
+      publication_id: row.publication_id,
+      token: row.token,
+      telegram_notify: value
+    })
+    row.telegram_notify = !!value
+    if (row.raw) row.raw.telegram_notify = !!value
+    message.success(value ? captions.telegramNotifySavedOn : captions.telegramNotifySavedOff)
+  } catch (error) {
+    message.error(formatCaption(captions.telegramNotifySaveError, { error: formatApiError(error) }))
   } finally {
     accessSaving.value = false
   }
@@ -1789,9 +1834,9 @@ async function copyText(value) {
   message.success(captions.copied)
 }
 
-function accessIcon({ active, activeTitle, inactiveTitle, activeIcon, inactiveIcon, onClick = null }) {
+function accessIcon({ active, activeTitle, inactiveTitle, activeIcon, inactiveIcon, activeColor = '#f0a020', inactiveColor = '#18a058', onClick = null }) {
   const icon = active ? activeIcon : inactiveIcon
-  const color = active ? '#f0a020' : '#18a058'
+  const color = active ? activeColor : inactiveColor
 
   return h(NTooltip, { trigger: 'hover' }, {
     trigger: () => h('span', {
@@ -1810,11 +1855,24 @@ function accessIcon({ active, activeTitle, inactiveTitle, activeIcon, inactiveIc
 }
 
 function formatApiError(error) {
-  return error?.response?.data?.message?.[0]?.text ||
-      error?.response?.data?.message ||
-      error?.response?.data?.error ||
+  return responseErrorText(error?.response?.data?.message?.[0]?.text) ||
+      responseErrorText(error?.response?.data?.message) ||
+      responseErrorText(error?.response?.data?.error) ||
+      responseErrorText(error?.response?.data) ||
       error?.message ||
       pageCaps.fallback.unknownError
+}
+
+function responseErrorText(value) {
+  if (!value) return ''
+  if (typeof value === 'string') return value
+  if (Array.isArray(value)) {
+    return value.map(responseErrorText).filter(Boolean).join('; ')
+  }
+  if (typeof value === 'object') {
+    return value.message || value.text || value.code || JSON.stringify(value)
+  }
+  return String(value)
 }
 
 function isAuthorizationError(error) {
@@ -1916,6 +1974,10 @@ function hasPassword(row) {
 
 function hasSticky(row) {
   return !!(row.sticky || row.raw?.sticky || row.raw?.meta?.sticky)
+}
+
+function hasTelegramNotify(row) {
+  return !!(row.telegram_notify || row.raw?.telegram_notify || row.raw?.meta?.telegram_notify)
 }
 
 function getRowPre(row) {

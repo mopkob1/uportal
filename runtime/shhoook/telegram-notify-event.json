@@ -1,0 +1,25 @@
+{
+  "uri": "/notify/telegram-event",
+  "method": "POST",
+  "auth": "X-Token:CHANGE_ME_UPORTAL_ADMIN_SECRET",
+  "ttl": "60s",
+  "error": 500,
+  "script": [
+    "bash",
+    "/usr/local/bin/uportal-telegram-notify-event.sh",
+    "{event}",
+    "{publication}",
+    "{token}",
+    "{original_uri}",
+    "{ip}",
+    "{xff}",
+    "{proto}",
+    "{host}",
+    "{ua}",
+    "{referer}",
+    "{accept_language}",
+    "{uid}",
+    "{page_cookie}",
+    "{pw_cookie}"
+  ]
+}

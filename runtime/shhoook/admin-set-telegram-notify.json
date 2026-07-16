@@ -1,0 +1,21 @@
+{
+  "uri": "/admin/set-telegram-notify",
+  "method": "POST",
+  "auth": "X-Token:CHANGE_ME_UPORTAL_ADMIN_SECRET",
+  "ttl": "15s",
+  "error": 500,
+  "query" : {
+    "user_token" : "notoken"
+  },
+  "body": {
+    "telegram_notify": ""
+  },
+  "script": [
+    "bash",
+    "/usr/local/bin/admin-set-telegram-notify.sh",
+    "{publication_id}",
+    "{token}",
+    "{telegram_notify}",
+    "{user_token}"
+  ]
+}

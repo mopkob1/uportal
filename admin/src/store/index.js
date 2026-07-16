@@ -8,6 +8,7 @@ import {
   setLinkPassword,
   setLinkStatus,
   setLinkSticky,
+  setLinkTelegramNotify,
   activityList,
   dictionaryList,
   dictionaryUpsert,
@@ -385,6 +386,17 @@ export default createStore({
         publication_id: payload.publication_id,
         token: payload.token,
         values: { sticky }
+      })
+      return data
+    },
+
+    async setPublicationTelegramNotify({ commit }, payload) {
+      const telegramNotify = !!payload.telegram_notify
+      const data = await setLinkTelegramNotify(payload.publication_id, payload.token, telegramNotify)
+      commit('updateLinkParams', {
+        publication_id: payload.publication_id,
+        token: payload.token,
+        values: { telegram_notify: telegramNotify }
       })
       return data
     },

@@ -81,12 +81,12 @@ export async function publishDraftRequest(draft) {
 function assertSuccessResponse(data) {
   if (data?.status !== 'error') return
 
-  const text = data?.message?.[0]?.text ||
-      data?.message ||
-      data?.error ||
+  const text = errorText(data?.message?.[0]?.text) ||
+      errorText(data?.message) ||
+      errorText(data?.error) ||
       'publish failed'
 
-  throw new Error(String(text))
+  throw new Error(text)
 }
 
 async function uploadDraftAssets(draft) {
@@ -153,15 +153,71 @@ function dataUrlToFile(dataUrl, filename) {
 }
 
 async function uploadPublicationFile(publicationId, token, filename, file) {
-  await api.put(
-    `/upload/${encodeURIComponent(publicationId)}/${encodeURIComponent(token)}/${encodeURIComponent(filename)}`,
-    file,
-    {
-      headers: {
-        'Content-Type': file.type || 'application/octet-stream'
+  try {
+    await api.put(
+      `/upload/${encodeURIComponent(publicationId)}/${encodeURIComponent(token)}/${encodeURIComponent(filename)}`,
+      file,
+      {
+        headers: {
+          'Content-Type': file.type || 'application/octet-stream'
+        }
       }
-    }
-  )
+    )
+  } catch (error) {
+    throw new Error(uploadErrorText(error, filename))
+  }
+}
+
+function uploadErrorText(error, filename = '') {
+  const headers = error?.response?.headers || {}
+  const quotaCode = headerValue(headers, 'x-uportal-quota-error-code')
+  const quotaStatus = headerValue(headers, 'x-uportal-quota-error-status')
+  const responseText = errorText(error?.response?.data?.error) ||
+      errorText(error?.response?.data?.message?.[0]?.text) ||
+      errorText(error?.response?.data?.message) ||
+      errorText(error?.response?.data)
+  const quotaText = quotaMessage(quotaCode)
+  const text = quotaText || responseText || error?.message || 'upload failed'
+  const details = [
+    filename ? `file: ${filename}` : '',
+    quotaCode || '',
+    quotaStatus ? `status: ${quotaStatus}` : ''
+  ].filter(Boolean).join(', ')
+
+  return details ? `${text} (${details})` : text
+}
+
+function headerValue(headers, name) {
+  const target = name.toLowerCase()
+  const entry = Object.entries(headers || {}).find(([key]) => key.toLowerCase() === target)
+  return entry ? String(entry[1] || '') : ''
+}
+
+function errorText(value) {
+  if (!value) return ''
+  if (typeof value === 'string') return value
+  if (Array.isArray(value)) {
+    return value.map(errorText).filter(Boolean).join('; ')
+  }
+  if (typeof value === 'object') {
+    return value.message || value.text || value.code || JSON.stringify(value)
+  }
+  return String(value)
+}
+
+function quotaMessage(code) {
+  const messages = {
+    storage_quota_exceeded: 'Storage quota exceeded',
+    publication_quota_exceeded: 'Publication payload quota exceeded',
+    publication_file_count_exceeded: 'Publication file count quota exceeded',
+    file_too_large: 'File is larger than the tariff limit',
+    content_length_required: 'Upload size is required',
+    publication_owner_mismatch: 'Publication belongs to another account',
+    session_required: 'Login is required',
+    session_expired: 'Session token is inactive'
+  }
+
+  return messages[code] || ''
 }
 
 export async function activityList(filters = {}) {
@@ -202,6 +258,15 @@ export async function setLinkSticky(publicationId, token, sticky) {
     publication_id: publicationId,
     token,
     sticky: sticky ? '1' : ''
+  })
+  return data
+}
+
+export async function setLinkTelegramNotify(publicationId, token, enabled) {
+  const { data } = await api.post('/api/admin/admin/set-telegram-notify', {
+    publication_id: publicationId,
+    token,
+    telegram_notify: enabled ? '1' : ''
   })
   return data
 }

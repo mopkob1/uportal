@@ -56,7 +56,7 @@
               {{ caps.cancel }}
             </n-button>
 
-            <n-button type="primary" @click="save">
+            <n-button type="primary" :loading="saving" @click="save">
               {{ caps.save }}
             </n-button>
           </n-space>
@@ -67,7 +67,7 @@
 </template>
 
 <script setup>
-import { computed, reactive, watch } from 'vue'
+import { computed, reactive, ref, watch } from 'vue'
 import { useStore } from 'vuex'
 import { NInputGroup, useMessage } from 'naive-ui'
 import { CopyOutline } from '@vicons/ionicons5'
@@ -84,6 +84,7 @@ const store = useStore()
 const message = useMessage()
 const caps = getCaptions('auth')
 const clientUid = computed(() => store.state.clientUid || '')
+const saving = ref(false)
 
 const form = reactive({
   serverUrl: '',
@@ -109,8 +110,11 @@ async function save() {
     serverUrl: normalizeServerUrl(store.state.serverUrl),
     authHeader: store.state.authHeader || 'X-User-Token',
     token: store.state.token || '',
-    authMode: store.state.authMode || 'token'
+    authMode: store.state.authMode || 'token',
+    siteSessionKey: getSiteSessionKey(store.state.siteSession)
   }
+
+  saving.value = true
 
   try {
     if (store.state.siteBackendAvailable) {
@@ -135,14 +139,18 @@ async function save() {
     )
     message.success(caps.saved)
     emit('saved', {
-      changed: previousAuth.serverUrl !== store.state.serverUrl ||
+      changed: true,
+      authChanged: previousAuth.serverUrl !== store.state.serverUrl ||
           previousAuth.authHeader !== store.state.authHeader ||
           previousAuth.token !== store.state.token ||
-          previousAuth.authMode !== store.state.authMode
+          previousAuth.authMode !== store.state.authMode ||
+          previousAuth.siteSessionKey !== getSiteSessionKey(store.state.siteSession)
     })
     emit('update:show', false)
   } catch (error) {
     message.error(error?.message || 'Authorization failed')
+  } finally {
+    saving.value = false
   }
 }
 
@@ -152,8 +160,22 @@ async function copyClientUid() {
 }
 
 async function logout() {
-  await store.dispatch('logoutAuth')
-  message.success(caps.reset)
-  emit('update:show', false)
+  saving.value = true
+  try {
+    await store.dispatch('logoutAuth')
+    message.success(caps.reset)
+    emit('update:show', false)
+  } finally {
+    saving.value = false
+  }
+}
+
+function getSiteSessionKey(session) {
+  if (!session?.authenticated) return ''
+  return [
+    session.account?.id || '',
+    session.account?.email || '',
+    session.visitorId || ''
+  ].filter(Boolean).join(':')
 }
 </script>

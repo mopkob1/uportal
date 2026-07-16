@@ -160,6 +160,7 @@ jq -c \
       post: (.post // ""),
       target_url: (.target_url // ""),
       sticky: (.sticky // false),
+      telegram_notify: (.telegram_notify // false),
       password_protected: ((.password_hash // "") != ""),
       fresh_until: (.fresh_until // -1),
       remaining_clicks: (.remaining_clicks // -1),

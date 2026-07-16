@@ -520,22 +520,26 @@ function userNameCell(row) {
   const name = row.user || row.payload?.user || row.user_id || row.payload?.user_id || '—'
   const bindings = tokenBindings(row)
 
-  return h('span', { class: 'user-name-cell' }, [
-    h('span', { class: 'mono user-name-text' }, name),
-    h('span', { class: 'user-binding-markers' },
-      bindings.map(binding => h(NTooltip, { placement: 'top' }, {
-        trigger: () => h('span', {
-          class: ['user-binding-marker', `user-binding-marker--${binding.type}`],
+  return h(NSpace, { align: 'center', size: 6, wrapItem: false }, {
+    default: () => [
+      h('span', { class: 'mono user-name-text' }, name),
+      ...bindings.map(binding => h(NTooltip, { placement: 'top' }, {
+        trigger: () => h(NTag, {
+          size: 'small',
+          round: true,
+          bordered: false,
+          type: binding.tagType,
           title: binding.label
-        }, [
-          h(NIcon, { size: 13 }, {
+        }, {
+          icon: () => h(NIcon, { size: 13 }, {
             default: () => h(binding.icon, { size: 13, strokeWidth: 1.9 })
-          })
-        ]),
+          }),
+          default: () => ''
+        }),
         default: () => binding.label
       }))
-    )
-  ])
+    ]
+  })
 }
 
 function normalizePageSize(value) {
@@ -709,52 +713,12 @@ onMounted(() => {
   stroke: currentColor;
 }
 
-.user-name-cell {
-  display: inline-grid;
-  grid-template-columns: minmax(0, max-content) auto;
-  align-items: center;
-  column-gap: 8px;
-  min-height: 24px;
-  max-width: 100%;
-}
-
 .user-name-text {
-  min-width: 0;
+  display: inline-block;
+  max-width: 220px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-}
-
-.user-binding-markers {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  height: 20px;
-}
-
-.user-binding-marker {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  flex: 0 0 20px;
-}
-
-.user-binding-marker--email {
-  color: #18a058;
-  background: rgba(24, 160, 88, 0.12);
-}
-
-.user-binding-marker--telegram {
-  color: #2080f0;
-  background: rgba(32, 128, 240, 0.12);
-}
-
-.user-binding-marker :deep(svg) {
-  color: currentColor;
-  stroke: currentColor;
 }
 
 .client-tooltip-row + .client-tooltip-row {

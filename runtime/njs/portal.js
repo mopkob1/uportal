@@ -537,6 +537,16 @@ async function trackPixelEvent(r, publicationId, token) {
             { method: 'POST' }
         );
     } catch (e) {}
+
+    try {
+        await r.subrequest(
+            '/__uportal_notify_telegram_pixel/' +
+            encodeURIComponent(publicationId) +
+            '/' +
+            encodeURIComponent(token),
+            { method: 'POST' }
+        );
+    } catch (e) {}
 }
 
 function addSetCookie(r, cookie) {
