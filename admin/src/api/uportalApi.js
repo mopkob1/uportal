@@ -142,8 +142,13 @@ async function uploadDraftAssets(draft) {
     uploads.reduce((map, item) => map.set(item.name, item), new Map()).values()
   )
 
+  const [firstUpload, ...remainingUploads] = uniqueUploads
+  if (!firstUpload) return
+
+  await uploadPublicationFile(draft.publication_id, draft.token, firstUpload.name, firstUpload.file)
+
   await Promise.all(
-    uniqueUploads.map(({ name, file }) =>
+    remainingUploads.map(({ name, file }) =>
       uploadPublicationFile(draft.publication_id, draft.token, name, file)
     )
   )

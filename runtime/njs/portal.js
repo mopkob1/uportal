@@ -575,16 +575,17 @@ function pixelRequestQuery(r, uid) {
 }
 
 async function trackPixelEvent(r, publicationId, token, uid) {
-    var query = pixelRequestQuery(r, uid);
+    var query = [
+        ['event', 'pixel'],
+        ['publication', publicationId],
+        ['token', token]
+    ].map(function (pair) {
+        return encodeURIComponent(pair[0]) + '=' + encodeURIComponent(String(pair[1] || ''));
+    }).join('&') + '&' + pixelRequestQuery(r, uid);
 
     try {
         await r.subrequest(
-            '/__uportal_track_pixel_shhoook/' +
-            encodeURIComponent(publicationId) +
-            '/' +
-            encodeURIComponent(token) +
-            '?' +
-            query,
+            '/__uportal_track_pixel_shhoook?' + query,
             { method: 'POST' }
         );
     } catch (e) {
@@ -593,12 +594,7 @@ async function trackPixelEvent(r, publicationId, token, uid) {
 
     fireAndForgetSubrequest(
         r,
-        '/__uportal_track_pixel_n8n/' +
-        encodeURIComponent(publicationId) +
-        '/' +
-        encodeURIComponent(token) +
-        '?' +
-        query
+        '/__uportal_track_pixel_n8n?' + query
     );
 
 }
@@ -816,6 +812,10 @@ async function dispatchShort(r) {
     var uid = ensureUidCookie(r);
 
     if (meta.type === 'pixel') {
+        if (wantsHtmlPreview(r)) {
+            return renderShortPreview(r, meta, captions(metaLang(r, meta)).pixelTitle);
+        }
+
         if (!enforceSticky(r, meta)) {
             return safeRedirect(r, getFallback(r, meta));
         }
