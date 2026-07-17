@@ -558,6 +558,9 @@ function requestHeader(r, name) {
 function pixelRequestQuery(r, uid) {
     var xff = requestHeader(r, 'X-Forwarded-For');
     var ip = requestHeader(r, 'X-Real-IP') || xff.split(',')[0].trim();
+    var ua = requestHeader(r, 'User-Agent');
+    var referer = requestHeader(r, 'Referer');
+    var acceptLanguage = requestHeader(r, 'Accept-Language');
 
     return [
         ['uid', uid || ''],
@@ -566,9 +569,9 @@ function pixelRequestQuery(r, uid) {
         ['xff', xff],
         ['proto', requestHeader(r, 'X-Forwarded-Proto') || String(r.variables.scheme || '')],
         ['host', requestHeader(r, 'Host')],
-        ['ua', requestHeader(r, 'User-Agent')],
-        ['referer', requestHeader(r, 'Referer')],
-        ['accept_language', requestHeader(r, 'Accept-Language')]
+        ['ua_b64', b64urlText(ua)],
+        ['referer_b64', b64urlText(referer)],
+        ['accept_language_b64', b64urlText(acceptLanguage)]
     ].map(function (pair) {
         return encodeURIComponent(pair[0]) + '=' + encodeURIComponent(String(pair[1] || ''));
     }).join('&');
