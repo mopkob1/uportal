@@ -100,7 +100,7 @@ mails="$(uportal_normalize_json_array_arg "$mails")"
 uportal_require_publish_client "$actor" "$client_type" "$client_uid" || exit 0
 
 case "${lang,,}" in
-  ru|en|es) ;;
+  auto|ru|en|es) ;;
   *) lang="en" ;;
 esac
 

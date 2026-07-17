@@ -33,7 +33,7 @@
             />
           </n-form-item>
 
-          <n-form-item :label="texts.fields.language">
+          <n-form-item v-if="draft.type !== 'pixel'" :label="texts.fields.language">
             <n-select
                 :value="draft.lang"
                 :options="languageOptions"
@@ -129,6 +129,7 @@ const typeOptions = [
 ]
 
 const languageOptions = [
+  { label: 'Auto', value: 'auto' },
   { label: 'English', value: 'en' },
   { label: 'Русский', value: 'ru' },
   { label: 'Español', value: 'es' }
@@ -214,6 +215,7 @@ watch(
       }
 
       if (draft.type === 'pixel') {
+        draft.lang = 'auto'
         draft.form.password = ''
         draft.fresh_until = -1
         draft.remaining_clicks = -1
@@ -245,7 +247,7 @@ function makeEmptyDraft() {
     post: '',
     fresh_until: -1,
     remaining_clicks: -1,
-    lang: 'en',
+    lang: 'auto',
     image: '',
     imageDataUrl: '',
     imageDataKey: '',

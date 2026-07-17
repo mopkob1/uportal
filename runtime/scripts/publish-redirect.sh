@@ -100,6 +100,14 @@ safe_file_seg() {
   printf '%s' "${s:-file.bin}"
 }
 
+cleanup_inbox_after_publish() {
+  case "$INBOX_DIR" in
+    /data/files/inbox/"$publication_id"/"$token")
+      rm -rf -- "$INBOX_DIR"
+      ;;
+  esac
+}
+
 gen_short() {
   while true; do
     local v
@@ -158,7 +166,7 @@ if [ -n "$password" ]; then
 fi
 
 case "${lang,,}" in
-  ru|en|es) ;;
+  auto|ru|en|es) ;;
   *) lang="en" ;;
 esac
 
@@ -253,6 +261,8 @@ append_action \
 if command -v uportal-links-index-upsert.sh >/dev/null 2>&1; then
   uportal-links-index-upsert.sh upsert "$publication_id" "$token" >/dev/null || true
 fi
+
+cleanup_inbox_after_publish
 
 jq -n \
   --arg type "redirect" \

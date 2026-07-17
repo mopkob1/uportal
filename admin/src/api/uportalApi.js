@@ -432,6 +432,7 @@ function normalizeClicksLimit(value) {
 
 function normalizeTemplateLanguage(value) {
   const lang = String(value || '').trim().toLowerCase().split('-')[0]
+  if (lang === 'auto') return 'auto'
   return ['en', 'ru', 'es'].includes(lang) ? lang : 'en'
 }
 

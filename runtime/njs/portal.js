@@ -148,8 +148,10 @@ function supportedLang(value) {
     return TEMPLATE_CAPTIONS[lang] ? lang : '';
 }
 
-function metaLang(meta) {
-    return normalizeLang(meta && meta.lang);
+function metaLang(r, meta) {
+    var raw = String((meta && meta.lang) || '').trim().toLowerCase();
+    if (!raw || raw === 'auto') return requestLang(r);
+    return normalizeLang(raw);
 }
 
 function requestLang(r) {
@@ -227,7 +229,7 @@ function publicAssetUrl(r, meta) {
 }
 
 function renderShortPreview(r, meta, fallbackTitle) {
-    var lang = metaLang(meta);
+    var lang = metaLang(r, meta);
     var image = publicAssetUrl(r, meta);
     var title = linkPreviewTitle(meta, fallbackTitle);
     var description = linkPreviewDescription(meta);
@@ -524,11 +526,15 @@ function requestHeader(r, name) {
     return String(r.headersIn[name] || '');
 }
 
-function pixelNotifyQuery(r, uid) {
+function pixelRequestQuery(r, uid) {
+    var xff = requestHeader(r, 'X-Forwarded-For');
+    var ip = requestHeader(r, 'X-Real-IP') || xff.split(',')[0].trim();
+
     return [
         ['uid', uid || ''],
         ['original_uri', requestOriginalUri(r)],
-        ['xff', requestHeader(r, 'X-Forwarded-For')],
+        ['ip', ip],
+        ['xff', xff],
         ['proto', requestHeader(r, 'X-Forwarded-Proto') || String(r.variables.scheme || '')],
         ['host', requestHeader(r, 'Host')],
         ['ua', requestHeader(r, 'User-Agent')],
@@ -540,12 +546,16 @@ function pixelNotifyQuery(r, uid) {
 }
 
 async function trackPixelEvent(r, publicationId, token, uid) {
+    var query = pixelRequestQuery(r, uid);
+
     try {
         await r.subrequest(
             '/__uportal_track_pixel_shhoook/' +
             encodeURIComponent(publicationId) +
             '/' +
-            encodeURIComponent(token),
+            encodeURIComponent(token) +
+            '?' +
+            query,
             { method: 'POST' }
         );
     } catch (e) {
@@ -557,7 +567,9 @@ async function trackPixelEvent(r, publicationId, token, uid) {
             '/__uportal_track_pixel_n8n/' +
             encodeURIComponent(publicationId) +
             '/' +
-            encodeURIComponent(token),
+            encodeURIComponent(token) +
+            '?' +
+            query,
             { method: 'POST' }
         );
     } catch (e) {}
@@ -569,7 +581,7 @@ async function trackPixelEvent(r, publicationId, token, uid) {
             '/' +
             encodeURIComponent(token) +
             '?' +
-            pixelNotifyQuery(r, uid),
+            query,
             { method: 'POST' }
         );
     } catch (e) {}
@@ -719,7 +731,7 @@ function requirePasswordPage(r, meta) {
         return r.return(500, 'password template not found');
     }
 
-    var lang = metaLang(meta);
+    var lang = metaLang(r, meta);
     var c = captions(lang);
     var redirectTo = meta && meta.short_id ? '/s/' + meta.short_id : '/';
     var vars = templateCaptionVars(lang);
@@ -798,7 +810,7 @@ async function dispatchShort(r) {
         setPageCookie(r, meta);
 
         var tplp = readText(templatePath(r, 'page-open.html'));
-        var langp = metaLang(meta);
+        var langp = metaLang(r, meta);
         var capsp = captions(langp);
         var base = cfg(r, 'uportal_base_url', 'http://localhost:8080');
         var targetUrl = '/p/' + meta.publication_id + '/' + meta.token + '/';
@@ -827,7 +839,7 @@ async function dispatchShort(r) {
     if (meta.type === 'redirect') {
         var tplr = readText(templatePath(r, safeSeg(meta.template || 'redirect', 'redirect') + '.html'));
         if (tplr === null) return safeRedirect(r, getFallback(r, meta));
-        var langr = metaLang(meta);
+        var langr = metaLang(r, meta);
         var delay = parseInt(meta.delay || 0, 10);
         if (isNaN(delay) || delay < 0) delay = 0;
 
@@ -852,7 +864,7 @@ async function dispatchShort(r) {
     if (meta.type === 'download') {
         var tpld = readText(templatePath(r, safeSeg(meta.template || 'download', 'download') + '.html'));
         if (tpld === null) return safeRedirect(r, getFallback(r, meta));
-        var langd = metaLang(meta);
+        var langd = metaLang(r, meta);
         var delayd = parseInt(meta.delay || 0, 10);
         if (isNaN(delayd) || delayd < 0) delayd = 0;
 
@@ -908,7 +920,7 @@ function authPassword(r) {
 
     if (!password || actual !== expected) {
         clearPasswordCookie(r);
-        return r.return(403, JSON.stringify({ ok: false, error: captions(metaLang(meta)).invalidPassword }));
+        return r.return(403, JSON.stringify({ ok: false, error: captions(metaLang(r, meta)).invalidPassword }));
     }
 
     setPasswordCookie(r, meta);
@@ -1024,7 +1036,7 @@ function pageShell(r) {
     var pageViewUrl = signedPageViewUrl(r, meta);
     var contentUrl = signedContentUrl(r, meta);
 
-    var lang = metaLang(meta);
+    var lang = metaLang(r, meta);
     var vars = templateCaptionVars(lang);
     vars.TITLE = escHtml(meta.title || captions(lang).pageTitle);
     vars.DESCRIPTION = escHtml(meta.description || '');

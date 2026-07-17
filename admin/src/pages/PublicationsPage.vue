@@ -247,6 +247,7 @@ const publicationsFilterPanelStyle = reactive({})
 const accessModalVisible = ref(false)
 const accessRow = ref(null)
 const accessSaving = ref(false)
+const telegramNotifySaving = reactive({})
 const passwordSaving = ref(false)
 const passwordForm = reactive({
   password: ''
@@ -569,6 +570,7 @@ const childColumns = [
             inactiveIcon: Send,
             activeColor: '#2080f0',
             inactiveColor: '#18a058',
+            loading: isTelegramNotifySaving(row),
             onClick: () => toggleTelegramNotify(row)
           }) : null,
           renderDelayEditor(row)
@@ -1571,6 +1573,10 @@ async function saveSticky(value, row = accessRow.value) {
 async function saveTelegramNotify(value, row) {
   if (!row || !canUseTelegramNotify.value) return
 
+  const key = telegramNotifyKey(row)
+  if (telegramNotifySaving[key]) return
+
+  telegramNotifySaving[key] = true
   accessSaving.value = true
 
   try {
@@ -1585,6 +1591,7 @@ async function saveTelegramNotify(value, row) {
   } catch (error) {
     message.error(formatCaption(captions.telegramNotifySaveError, { error: formatApiError(error) }))
   } finally {
+    delete telegramNotifySaving[key]
     accessSaving.value = false
   }
 }
@@ -1834,24 +1841,43 @@ async function copyText(value) {
   message.success(captions.copied)
 }
 
-function accessIcon({ active, activeTitle, inactiveTitle, activeIcon, inactiveIcon, activeColor = '#f0a020', inactiveColor = '#18a058', onClick = null }) {
+function accessIcon({ active, activeTitle, inactiveTitle, activeIcon, inactiveIcon, activeColor = '#f0a020', inactiveColor = '#18a058', loading = false, onClick = null }) {
   const icon = active ? activeIcon : inactiveIcon
   const color = active ? activeColor : inactiveColor
+  const disabled = !!loading
 
   return h(NTooltip, { trigger: 'hover' }, {
-    trigger: () => h('span', {
-      style: `display: inline-flex; align-items: center; justify-content: center; color: ${color}; cursor: ${onClick ? 'pointer' : 'help'};`,
-      onClick: onClick || undefined
-    }, [
-      h(icon, {
-        size: 17,
-        strokeWidth: 1.9,
+    trigger: () => h(NButton, {
+      circle: true,
+      quaternary: true,
+      size: 'tiny',
+      loading,
+      disabled,
+      style: {
         color,
-        stroke: color
+        cursor: onClick && !disabled ? 'pointer' : 'help'
+      },
+      onClick: onClick && !disabled ? onClick : undefined
+    }, {
+      icon: () => h(NIcon, null, {
+        default: () => h(icon, {
+          size: 17,
+          strokeWidth: 1.9,
+          color,
+          stroke: color
+        })
       })
-    ]),
+    }),
     default: () => active ? activeTitle : inactiveTitle
   })
+}
+
+function isTelegramNotifySaving(row) {
+  return !!telegramNotifySaving[telegramNotifyKey(row)]
+}
+
+function telegramNotifyKey(row) {
+  return `${row?.publication_id || ''}:${row?.token || ''}`
 }
 
 function formatApiError(error) {

@@ -48,6 +48,9 @@ notify_url="$(jq -r '.url // empty' "$NOTIFY_CONFIG" 2>/dev/null || true)"
 TS="$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
 UP_UID="$(printf '%s' "$RAW_UID" | cut -d'|' -f1 | sed 's/[^A-Za-z0-9._-]/_/g')"
 [ -n "$UP_UID" ] || UP_UID="nouid"
+if [ -z "$IP" ] && [ -n "$XFF" ]; then
+  IP="$(printf '%s' "$XFF" | cut -d',' -f1 | xargs)"
+fi
 
 actor="$(jq -r '(.actions // [] | map(select(.actor != null and .actor != "")) | last | .actor) // .created_by // .owner // ""' "$META_FILE" 2>/dev/null || echo "")"
 owner_file=""
