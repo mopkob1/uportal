@@ -159,7 +159,7 @@ if [ "${UPORTAL_ACTIVITY_INDEX_DISABLE:-0}" != "1" ] && [ "$ACTIVITY_INDEX_READY
         or (($events | index($row.event // "")) != null);
 
     map(select(type == "object"))
-    | map(select(allowed_actor))
+    | map(select($pub != "" or $link_token != "" or allowed_actor))
     | map(select(allowed_type))
     | map(select($pub == "" or (.publication // .publication_id // "") == $pub))
     | map(select($link_token == "" or (. as $row | (csv_list($link_token) | index($row.token // "")) != null)))

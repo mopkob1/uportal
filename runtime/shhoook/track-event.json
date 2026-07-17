@@ -20,6 +20,9 @@
     "{accept_language}",
     "{uid}",
     "{page_cookie}",
-    "{pw_cookie}"
+    "{pw_cookie}",
+    "{ua_b64}",
+    "{referer_b64}",
+    "{accept_language_b64}"
   ]
 }

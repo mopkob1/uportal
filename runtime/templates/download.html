@@ -61,7 +61,7 @@
     }
 
     async function startDownload() {
-      await ping(DOWNLOAD_URL);
+      ping(DOWNLOAD_URL);
       const { e, st, file, filename } = await getSigned();
       const nice = encodeURIComponent(filename || file || TOKEN);
       window.location.href = `/f/${PUB}/${TOKEN}/${encodeURIComponent(file)}?e=${encodeURIComponent(e)}&st=${encodeURIComponent(st)}&fn=${nice}`;

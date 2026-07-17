@@ -51,11 +51,7 @@ function useLinkReport(captions = {}) {
 
     for (const row of rows) {
       try {
-        let rowEvents = events.filter(event => isSameLinkEvent(row, event))
-
-        if (!rowEvents.length && rows.length > 1) {
-          rowEvents = await loadReportEvents(row)
-        }
+        const rowEvents = events.filter(event => isSameLinkEvent(row, event))
 
         const report = setLinkReport(row, rowEvents)
         debugReport('loadPublicationLinkReports:row', {

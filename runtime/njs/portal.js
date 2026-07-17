@@ -220,8 +220,8 @@ function wantsHtmlPreview(r) {
 }
 
 function publicAssetUrl(r, meta) {
-    if (!meta || !meta.image) return '';
     var base = cfg(r, 'uportal_base_url', 'http://localhost:8080');
+    if (!meta || !meta.image) return base + '/uportal-logo.svg';
     return base + '/assets-public/' +
         meta.publication_id + '/' +
         meta.token + '/' +
@@ -299,6 +299,26 @@ function b64url(buf) {
         .replace(/\+/g, '-')
         .replace(/\//g, '_')
         .replace(/=+$/g, '');
+}
+
+function b64urlText(value) {
+    return b64url(Buffer.from(String(value || ''), 'utf8'));
+}
+
+function headerB64(r, name) {
+    return b64urlText(r.headersIn[name] || '');
+}
+
+function userAgentB64(r) {
+    return headerB64(r, 'User-Agent');
+}
+
+function refererB64(r) {
+    return headerB64(r, 'Referer');
+}
+
+function acceptLanguageB64(r) {
+    return headerB64(r, 'Accept-Language');
 }
 
 function parseCookies(r) {
@@ -562,29 +582,26 @@ async function trackPixelEvent(r, publicationId, token, uid) {
         r.error('pixel shhoook subrequest failed: ' + e);
     }
 
-    try {
-        await r.subrequest(
-            '/__uportal_track_pixel_n8n/' +
-            encodeURIComponent(publicationId) +
-            '/' +
-            encodeURIComponent(token) +
-            '?' +
-            query,
-            { method: 'POST' }
-        );
-    } catch (e) {}
+    fireAndForgetSubrequest(
+        r,
+        '/__uportal_track_pixel_n8n/' +
+        encodeURIComponent(publicationId) +
+        '/' +
+        encodeURIComponent(token) +
+        '?' +
+        query
+    );
 
+}
+
+function fireAndForgetSubrequest(r, uri) {
     try {
-        await r.subrequest(
-            '/__uportal_notify_telegram_pixel/' +
-            encodeURIComponent(publicationId) +
-            '/' +
-            encodeURIComponent(token) +
-            '?' +
-            query,
-            { method: 'POST' }
-        );
-    } catch (e) {}
+        r.subrequest(uri, { method: 'POST' }).catch(function (e) {
+            r.error('background subrequest failed: ' + e);
+        });
+    } catch (e) {
+        r.error('background subrequest failed: ' + e);
+    }
 }
 
 function addSetCookie(r, cookie) {
@@ -1208,5 +1225,8 @@ export default {
     pixel,
     pixelAuth,
     pixelGate,
-    fallback
+    fallback,
+    userAgentB64,
+    refererB64,
+    acceptLanguageB64
 };

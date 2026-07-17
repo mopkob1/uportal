@@ -500,6 +500,13 @@ async function copyToken(token) {
   message.success(captions.tokenCopied)
 }
 
+async function copyText(value, successText = captions.valueCopied) {
+  const text = String(value || '').trim()
+  if (!text) return
+  await navigator.clipboard.writeText(text)
+  message.success(formatCaption(successText, { value: text }))
+}
+
 function tokenCopyCell(row) {
   const token = row.token || ''
   const masked = maskToken(token)
@@ -529,14 +536,19 @@ function userNameCell(row) {
           round: true,
           bordered: false,
           type: binding.tagType,
-          title: binding.label
+          title: binding.tooltip,
+          style: binding.copy ? 'cursor: pointer;' : '',
+          onClick: (event) => {
+            event?.stopPropagation?.()
+            if (binding.copy) copyText(binding.copy, captions.bindingCopied)
+          }
         }, {
           icon: () => h(NIcon, { size: 13 }, {
             default: () => h(binding.icon, { size: 13, strokeWidth: 1.9 })
           }),
           default: () => ''
         }),
-        default: () => binding.label
+        default: () => binding.tooltip
       }))
     ]
   })
@@ -554,19 +566,16 @@ function tokenBindings(row) {
   const email = site.email || row.email || row.payload?.email || {}
   const telegram = site.telegram || row.telegram || row.payload?.telegram || {}
   const siteBindings = site.bindings || {}
+  const emailAddress = normalizeEmailAddress(account, email)
+  const telegramAddress = normalizeTelegramAddress(telegram)
 
   const hasEmail = Boolean(
     siteBindings.email ||
-    account.email ||
-    email.address ||
-    (typeof email === 'string' && email)
+    emailAddress
   )
   const hasTelegram = Boolean(
     siteBindings.telegram ||
-    telegram.user_id ||
-    telegram.username ||
-    telegram.chat_id ||
-    (typeof telegram === 'string' && telegram)
+    telegramAddress
   )
   const bindings = []
 
@@ -575,7 +584,11 @@ function tokenBindings(row) {
       type: 'email',
       icon: Mail,
       tagType: 'success',
-      label: 'Email привязан'
+      label: captions.emailBound,
+      copy: emailAddress,
+      tooltip: emailAddress
+          ? formatCaption(captions.copyEmail, { value: emailAddress })
+          : captions.emailBound
     })
   }
   if (hasTelegram) {
@@ -583,11 +596,27 @@ function tokenBindings(row) {
       type: 'telegram',
       icon: Send,
       tagType: 'info',
-      label: 'Telegram привязан'
+      label: captions.telegramBound,
+      copy: telegramAddress,
+      tooltip: telegramAddress
+          ? formatCaption(captions.copyTelegram, { value: telegramAddress })
+          : captions.telegramBound
     })
   }
 
   return bindings
+}
+
+function normalizeEmailAddress(account, email) {
+  if (typeof email === 'string') return email
+  return String(account?.email || email?.address || email?.email || '').trim()
+}
+
+function normalizeTelegramAddress(telegram) {
+  if (typeof telegram === 'string') return telegram.trim()
+  const username = String(telegram?.username || '').trim().replace(/^@+/, '')
+  if (username) return `@${username}`
+  return String(telegram?.chat_id || telegram?.user_id || telegram?.id || '').trim()
 }
 
 function formatDateTime(value) {

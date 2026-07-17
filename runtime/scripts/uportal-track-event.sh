@@ -15,6 +15,9 @@ ACCEPT_LANGUAGE="${11:-}"
 RAW_UID="${12:-}"
 PAGE_COOKIE="${13:-}"
 PW_COOKIE="${14:-}"
+UA_B64="${15:-}"
+REFERER_B64="${16:-}"
+ACCEPT_LANGUAGE_B64="${17:-}"
 
 UPORTAL_ROOT="${UPORTAL_ROOT:-/data/files/uportal}"
 ROOT="$UPORTAL_ROOT/events"
@@ -28,6 +31,33 @@ fi
 PUBLIC_BASE_URL="$(uportal_public_base_url)"
 
 TS="$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
+
+decode_b64url_arg() {
+  local value="${1:-}"
+  local len
+  [ -n "$value" ] || return 0
+  value="${value//-/+}"
+  value="${value//_//}"
+  len=$(( ${#value} % 4 ))
+  if [ "$len" -eq 2 ]; then
+    value="${value}=="
+  elif [ "$len" -eq 3 ]; then
+    value="${value}="
+  elif [ "$len" -ne 0 ]; then
+    return 0
+  fi
+  printf '%s' "$value" | base64 -d 2>/dev/null || true
+}
+
+if [ -n "$UA_B64" ]; then
+  UA="$(decode_b64url_arg "$UA_B64")"
+fi
+if [ -n "$REFERER_B64" ]; then
+  REFERER="$(decode_b64url_arg "$REFERER_B64")"
+fi
+if [ -n "$ACCEPT_LANGUAGE_B64" ]; then
+  ACCEPT_LANGUAGE="$(decode_b64url_arg "$ACCEPT_LANGUAGE_B64")"
+fi
 
 UP_UID="$(printf '%s' "$RAW_UID" | cut -d'|' -f1)"
 UP_UID="$(printf '%s' "$UP_UID" | sed 's/[^A-Za-z0-9._-]/_/g')"
@@ -375,6 +405,31 @@ fi
 
 if command -v uportal-activity-index-upsert.sh >/dev/null 2>&1; then
   uportal-activity-index-upsert.sh "$RAW_FILE" >/dev/null || true
+fi
+
+if command -v uportal-telegram-notify-event.sh >/dev/null 2>&1; then
+  (
+    UPORTAL_ROOT="$UPORTAL_ROOT" \
+      UPORTAL_TOKEN_ROOT="${UPORTAL_TOKEN_ROOT:-$UPORTAL_ROOT/user-tokens}" \
+      uportal-telegram-notify-event.sh \
+        "$EVENT" \
+        "$PUB" \
+        "$TOKEN" \
+        "$ORIGINAL_URI" \
+        "$IP" \
+        "$XFF" \
+        "$PROTO" \
+        "$HOST" \
+        "$UA" \
+        "$REFERER" \
+        "$ACCEPT_LANGUAGE" \
+        "$RAW_UID" \
+        "$PAGE_COOKIE" \
+        "$PW_COOKIE" \
+        "$UA_B64" \
+        "$REFERER_B64" \
+        "$ACCEPT_LANGUAGE_B64"
+  ) >/dev/null 2>&1 </dev/null &
 fi
 
 jq -n \

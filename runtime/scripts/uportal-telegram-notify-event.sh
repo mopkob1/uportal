@@ -15,12 +15,32 @@ ACCEPT_LANGUAGE="${11:-}"
 RAW_UID="${12:-}"
 PAGE_COOKIE="${13:-}"
 PW_COOKIE="${14:-}"
+UA_B64="${15:-}"
+REFERER_B64="${16:-}"
+ACCEPT_LANGUAGE_B64="${17:-}"
 
 UPORTAL_ROOT="${UPORTAL_ROOT:-/data/files/uportal}"
 META_ROOT="$UPORTAL_ROOT/meta"
 TOKEN_ROOT="${UPORTAL_TOKEN_ROOT:-$UPORTAL_ROOT/user-tokens}"
 NOTIFY_CONFIG="$UPORTAL_ROOT/config/telegram-notify.json"
 META_FILE="$META_ROOT/$PUB/$TOKEN.json"
+
+decode_b64url_arg() {
+  local value="${1:-}"
+  local len
+  [ -n "$value" ] || return 0
+  value="${value//-/+}"
+  value="${value//_//}"
+  len=$(( ${#value} % 4 ))
+  if [ "$len" -eq 2 ]; then
+    value="${value}=="
+  elif [ "$len" -eq 3 ]; then
+    value="${value}="
+  elif [ "$len" -ne 0 ]; then
+    return 0
+  fi
+  printf '%s' "$value" | base64 -d 2>/dev/null || true
+}
 
 json_skip() {
   jq -cn --arg reason "$1" '{status:"success",message:[{sent:false,reason:$reason}]}'
@@ -36,6 +56,16 @@ json_error() {
 [[ "$PUB" =~ ^[A-Za-z0-9._-]{1,128}$ ]] || json_skip "bad_publication"
 [[ "$TOKEN" =~ ^[A-Za-z0-9._-]{1,128}$ ]] || json_skip "bad_token"
 [ -f "$META_FILE" ] || json_skip "meta_not_found"
+
+if [ -n "$UA_B64" ]; then
+  UA="$(decode_b64url_arg "$UA_B64")"
+fi
+if [ -n "$REFERER_B64" ]; then
+  REFERER="$(decode_b64url_arg "$REFERER_B64")"
+fi
+if [ -n "$ACCEPT_LANGUAGE_B64" ]; then
+  ACCEPT_LANGUAGE="$(decode_b64url_arg "$ACCEPT_LANGUAGE_B64")"
+fi
 
 if ! jq -e '(.telegram_notify == true)' "$META_FILE" >/dev/null 2>&1; then
   json_skip "telegram_notify_disabled"
@@ -145,6 +175,8 @@ fi
 response_file="$(mktemp)"
 status="$(
   curl -sS -o "$response_file" -w '%{http_code}' \
+    --connect-timeout "${UPORTAL_TELEGRAM_NOTIFY_CONNECT_TIMEOUT:-1}" \
+    --max-time "${UPORTAL_TELEGRAM_NOTIFY_MAX_TIME:-2}" \
     -X POST \
     "${headers[@]}" \
     --data-binary "@$payload_file" \

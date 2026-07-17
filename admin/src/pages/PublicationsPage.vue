@@ -1959,7 +1959,7 @@ function getPreviewImageUrl(row) {
   const token = row.token || row.raw?.token || ''
   const direct = row.preview_url || row.raw?.preview_url || row.raw?.meta?.preview_url || ''
 
-  if (!image || !publicationId || !token) return direct ? normalizePublicUrl(direct) : ''
+  if (!image || !publicationId || !token) return direct ? normalizePublicUrl(direct) : uportalLogo
 
   const serverUrl = normalizeServerUrl(store.state.serverUrl)
   return `${serverUrl}/assets-public/${encodeURIComponent(publicationId)}/${encodeURIComponent(token)}/${encodeURIComponent(image)}`
