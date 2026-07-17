@@ -555,13 +555,36 @@ function requestHeader(r, name) {
     return String(r.headersIn[name] || '');
 }
 
+function pixelRequestQuery(r, meta, uid) {
+    var xff = requestHeader(r, 'X-Forwarded-For');
+    var ip = requestHeader(r, 'X-Real-IP') || xff.split(',')[0].trim();
+
+    return [
+        ['event', 'pixel'],
+        ['publication', meta.publication_id || ''],
+        ['token', meta.token || ''],
+        ['uid', uid || ''],
+        ['original_uri', requestOriginalUri(r)],
+        ['ip', ip],
+        ['xff', xff],
+        ['proto', requestHeader(r, 'X-Forwarded-Proto') || String(r.variables.scheme || '')],
+        ['host', requestHeader(r, 'Host')],
+        ['ua_b64', b64urlText(requestHeader(r, 'User-Agent'))],
+        ['referer_b64', b64urlText(requestHeader(r, 'Referer'))],
+        ['accept_language_b64', b64urlText(requestHeader(r, 'Accept-Language'))]
+    ].map(function (pair) {
+        return encodeURIComponent(pair[0]) + '=' + encodeURIComponent(String(pair[1] || ''));
+    }).join('&');
+}
+
 async function trackPixelEvent(r, meta, uid) {
-    var trackUrl = signedPixelUrl(r, meta) +
-        '&uid=' + encodeURIComponent(String(uid || '')) +
-        '&original_uri=' + encodeURIComponent(requestOriginalUri(r));
+    var trackUrl = '/__uportal_track_pixel_shhoook?' + pixelRequestQuery(r, meta, uid);
 
     try {
-        await r.subrequest(trackUrl, { method: 'GET' });
+        var reply = await r.subrequest(trackUrl, { method: 'POST' });
+        if (!reply || reply.status < 200 || reply.status >= 300) {
+            r.error('pixel shhoook subrequest failed status=' + (reply ? reply.status : 'none'));
+        }
     } catch (e) {
         r.error('pixel shhoook subrequest failed: ' + e);
     }
