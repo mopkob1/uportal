@@ -407,29 +407,42 @@ if command -v uportal-activity-index-upsert.sh >/dev/null 2>&1; then
   uportal-activity-index-upsert.sh "$RAW_FILE" >/dev/null || true
 fi
 
+run_detached() {
+  if command -v setsid >/dev/null 2>&1; then
+    setsid "$@" >/dev/null 2>&1 </dev/null &
+    return 0
+  fi
+
+  if command -v nohup >/dev/null 2>&1; then
+    nohup "$@" >/dev/null 2>&1 </dev/null &
+    return 0
+  fi
+
+  "$@" >/dev/null 2>&1 </dev/null &
+}
+
 if command -v uportal-telegram-notify-event.sh >/dev/null 2>&1; then
-  (
-    UPORTAL_ROOT="$UPORTAL_ROOT" \
-      UPORTAL_TOKEN_ROOT="${UPORTAL_TOKEN_ROOT:-$UPORTAL_ROOT/user-tokens}" \
-      uportal-telegram-notify-event.sh \
-        "$EVENT" \
-        "$PUB" \
-        "$TOKEN" \
-        "$ORIGINAL_URI" \
-        "$IP" \
-        "$XFF" \
-        "$PROTO" \
-        "$HOST" \
-        "$UA" \
-        "$REFERER" \
-        "$ACCEPT_LANGUAGE" \
-        "$RAW_UID" \
-        "$PAGE_COOKIE" \
-        "$PW_COOKIE" \
-        "$UA_B64" \
-        "$REFERER_B64" \
-        "$ACCEPT_LANGUAGE_B64"
-  ) >/dev/null 2>&1 </dev/null &
+  run_detached env \
+    "UPORTAL_ROOT=$UPORTAL_ROOT" \
+    "UPORTAL_TOKEN_ROOT=${UPORTAL_TOKEN_ROOT:-$UPORTAL_ROOT/user-tokens}" \
+    uportal-telegram-notify-event.sh \
+      "$EVENT" \
+      "$PUB" \
+      "$TOKEN" \
+      "$ORIGINAL_URI" \
+      "$IP" \
+      "$XFF" \
+      "$PROTO" \
+      "$HOST" \
+      "$UA" \
+      "$REFERER" \
+      "$ACCEPT_LANGUAGE" \
+      "$RAW_UID" \
+      "$PAGE_COOKIE" \
+      "$PW_COOKIE" \
+      "$UA_B64" \
+      "$REFERER_B64" \
+      "$ACCEPT_LANGUAGE_B64"
 fi
 
 jq -n \

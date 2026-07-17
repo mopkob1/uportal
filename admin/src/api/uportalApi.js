@@ -92,12 +92,17 @@ function assertSuccessResponse(data) {
 }
 
 async function uploadDraftAssets(draft) {
+  const uploads = []
+
   if (draft.publication_id && draft.token && draft.image) {
     const imageDataUrl = draft.imageDataUrl || await getDraftAsset(draft.imageDataKey)
     const imageFile = draft.imageFile || dataUrlToFile(imageDataUrl, draft.image)
 
     if (imageFile) {
-      await uploadPublicationFile(draft.publication_id, draft.token, draft.image, imageFile)
+      uploads.push({
+        name: draft.image,
+        file: imageFile
+      })
     }
   }
 
@@ -108,25 +113,40 @@ async function uploadDraftAssets(draft) {
     const name = draft.fileName || file?.name || ''
 
     if (file && name) {
-      await uploadPublicationFile(draft.publication_id, draft.token, name, file)
+      uploads.push({
+        name,
+        file
+      })
     }
   }
 
   if (Array.isArray(draft.form?.files)) {
-    for (const item of draft.form.files) {
-      if (!draft.publication_id || !draft.token) continue
+    const pageFiles = await Promise.all(
+      draft.form.files.map(async (item) => {
+        if (!draft.publication_id || !draft.token) return null
 
-      const name = item?.name || item?.file?.name || ''
-      const fileDataUrl = item?.fileDataUrl || await getDraftAsset(item?.fileDataKey)
-      const file = item?.file instanceof File
-          ? item.file
-          : dataUrlToFile(fileDataUrl, name)
+        const name = item?.name || item?.file?.name || ''
+        const fileDataUrl = item?.fileDataUrl || await getDraftAsset(item?.fileDataKey)
+        const file = item?.file instanceof File
+            ? item.file
+            : dataUrlToFile(fileDataUrl, name)
 
-      if (!file || !name) continue
+        return file && name ? { name, file } : null
+      })
+    )
 
-      await uploadPublicationFile(draft.publication_id, draft.token, name, file)
-    }
+    uploads.push(...pageFiles.filter(Boolean))
   }
+
+  const uniqueUploads = Array.from(
+    uploads.reduce((map, item) => map.set(item.name, item), new Map()).values()
+  )
+
+  await Promise.all(
+    uniqueUploads.map(({ name, file }) =>
+      uploadPublicationFile(draft.publication_id, draft.token, name, file)
+    )
+  )
 }
 
 function dataUrlToFile(dataUrl, filename) {

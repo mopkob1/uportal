@@ -199,6 +199,7 @@ import useLinkReport from '../publications/useLinkReport'
 import { deleteDraftAssetsForDraft } from '../services/draftAssetStore'
 import { formatCaption, getCaptions } from '../captions'
 import uportalLogo from '../assets/uportal-logo.svg'
+import uportalCover from '../assets/uportal-og-cover.png'
 
 const pageCaps = getCaptions('publications')
 const columnLabels = pageCaps.columns
@@ -1959,7 +1960,7 @@ function getPreviewImageUrl(row) {
   const token = row.token || row.raw?.token || ''
   const direct = row.preview_url || row.raw?.preview_url || row.raw?.meta?.preview_url || ''
 
-  if (!image || !publicationId || !token) return direct ? normalizePublicUrl(direct) : uportalLogo
+  if (!image || !publicationId || !token) return direct ? normalizePublicUrl(direct) : uportalCover
 
   const serverUrl = normalizeServerUrl(store.state.serverUrl)
   return `${serverUrl}/assets-public/${encodeURIComponent(publicationId)}/${encodeURIComponent(token)}/${encodeURIComponent(image)}`

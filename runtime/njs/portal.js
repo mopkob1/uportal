@@ -221,7 +221,7 @@ function wantsHtmlPreview(r) {
 
 function publicAssetUrl(r, meta) {
     var base = cfg(r, 'uportal_base_url', 'http://localhost:8080');
-    if (!meta || !meta.image) return base + '/uportal-logo.svg';
+    if (!meta || !meta.image) return base + '/assets-public/__uportal__/cover/uportal-og-cover.png';
     return base + '/assets-public/' +
         meta.publication_id + '/' +
         meta.token + '/' +
@@ -231,8 +231,14 @@ function publicAssetUrl(r, meta) {
 function renderShortPreview(r, meta, fallbackTitle) {
     var lang = metaLang(r, meta);
     var image = publicAssetUrl(r, meta);
+    var fallbackImage = !meta || !meta.image;
     var title = linkPreviewTitle(meta, fallbackTitle);
     var description = linkPreviewDescription(meta);
+    var imageMeta = fallbackImage
+        ? '<meta property="og:image:type" content="image/png"/>' +
+          '<meta property="og:image:width" content="1200"/>' +
+          '<meta property="og:image:height" content="630"/>'
+        : '';
 
     r.headersOut['Content-Type'] = 'text/html; charset=utf-8';
     r.headersOut['Cache-Control'] = 'no-store';
@@ -244,6 +250,9 @@ function renderShortPreview(r, meta, fallbackTitle) {
         '<meta property="og:title" content="' + escAttr(title) + '"/>' +
         '<meta property="og:description" content="' + escAttr(description) + '"/>' +
         '<meta property="og:image" content="' + escAttr(image) + '"/>' +
+        imageMeta +
+        '<meta name="twitter:card" content="summary_large_image"/>' +
+        '<meta name="twitter:image" content="' + escAttr(image) + '"/>' +
         '</head><body></body></html>');
 }
 
@@ -1122,6 +1131,14 @@ function publicAsset(r) {
     var publicationId = m[1];
     var token = m[2];
     var rel = safeSeg(m[3], 'x');
+
+    if (publicationId === '__uportal__' && token === 'cover' && rel === 'uportal-og-cover.png') {
+        var cover = readBin(templatePath(r, 'uportal-og-cover.png'));
+        if (cover === null) return r.return(404);
+        r.headersOut['Content-Type'] = 'image/png';
+        r.headersOut['Cache-Control'] = 'public, max-age=3600';
+        return r.return(200, cover);
+    }
 
     var meta = readMeta(r, publicationId, token);
     if (!meta || !isActive(meta) || !isFresh(meta) || !hasClicks(meta)) {
