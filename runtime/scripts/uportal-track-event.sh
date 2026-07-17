@@ -421,11 +421,38 @@ run_detached() {
   "$@" >/dev/null 2>&1 </dev/null &
 }
 
-if command -v uportal-telegram-notify-enqueue.sh >/dev/null 2>&1; then
+resolve_helper_script() {
+  local name="$1"
+  local script_dir
+
+  if command -v "$name" >/dev/null 2>&1; then
+    command -v "$name"
+    return 0
+  fi
+
+  script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+  if [ -x "$script_dir/$name" ]; then
+    printf '%s/%s\n' "$script_dir" "$name"
+    return 0
+  fi
+
+  if [ -x "/opt/uportal/runtime/scripts/$name" ]; then
+    printf '/opt/uportal/runtime/scripts/%s\n' "$name"
+    return 0
+  fi
+
+  return 1
+}
+
+TELEGRAM_NOTIFY_ENQUEUE_SCRIPT="$(
+  resolve_helper_script uportal-telegram-notify-enqueue.sh 2>/dev/null || true
+)"
+
+if [ -n "$TELEGRAM_NOTIFY_ENQUEUE_SCRIPT" ]; then
   run_detached env \
     "UPORTAL_ROOT=$UPORTAL_ROOT" \
     "UPORTAL_TOKEN_ROOT=${UPORTAL_TOKEN_ROOT:-$UPORTAL_ROOT/user-tokens}" \
-    uportal-telegram-notify-enqueue.sh \
+    "$TELEGRAM_NOTIFY_ENQUEUE_SCRIPT" \
       "$EVENT" \
       "$PUB" \
       "$TOKEN" \

@@ -817,10 +817,6 @@ async function dispatchShort(r) {
         }
 
         await trackPixelEvent(r, meta.publication_id, meta.token, uid);
-        if (wantsHtmlPreview(r)) {
-            return renderShortPreview(r, meta, captions(metaLang(r, meta)).pixelTitle);
-        }
-
         return servePixelImage(r);
     }
 

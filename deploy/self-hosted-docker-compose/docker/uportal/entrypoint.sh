@@ -535,6 +535,7 @@ for dir in \
   "$UPORTAL_ROOT/config" \
   "$UPORTAL_ROOT/upload-grants" \
   "$UPORTAL_ROOT/telegram-notify-queue" \
+  "$UPORTAL_ROOT/quota-reconcile-queue" \
   "$UPORTAL_ROOT/build/admin" \
   "$UPORTAL_ROOT/build/plugin" \
   "$DATA_ROOT/upload-temp" \
@@ -551,7 +552,7 @@ chown -R www-data:www-data "$INBOX_ROOT"
 chmod 775 "$INBOX_ROOT"
 chown -R www-data:www-data "$DATA_ROOT/upload-temp"
 chmod 775 "$DATA_ROOT/upload-temp"
-chmod 775 "$UPORTAL_ROOT/upload-grants" "$UPORTAL_ROOT/telegram-notify-queue"
+chmod 775 "$UPORTAL_ROOT/upload-grants" "$UPORTAL_ROOT/telegram-notify-queue" "$UPORTAL_ROOT/quota-reconcile-queue"
 
 cp -a /opt/uportal/runtime/templates/. "$UPORTAL_ROOT/templates/"
 cp -a /opt/uportal/build/admin/. "$UPORTAL_ROOT/build/admin/"

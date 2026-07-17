@@ -299,6 +299,17 @@ fi
 
 cleanup_inbox_after_publish
 
+quota_reconcile_enqueue_script="$(command -v uportal-quota-reconcile-enqueue.sh 2>/dev/null || true)"
+if [ -z "$quota_reconcile_enqueue_script" ] && [ -x "$(dirname "$0")/uportal-quota-reconcile-enqueue.sh" ]; then
+  quota_reconcile_enqueue_script="$(dirname "$0")/uportal-quota-reconcile-enqueue.sh"
+fi
+if [ -z "$quota_reconcile_enqueue_script" ] && [ -x /opt/uportal/runtime/scripts/uportal-quota-reconcile-enqueue.sh ]; then
+  quota_reconcile_enqueue_script="/opt/uportal/runtime/scripts/uportal-quota-reconcile-enqueue.sh"
+fi
+if [ -n "$quota_reconcile_enqueue_script" ]; then
+  "$quota_reconcile_enqueue_script" "$publication_id" "$token" "page_published" >/dev/null 2>&1 || true
+fi
+
 jq -n \
   --arg type "page" \
   --arg status "$status" \
