@@ -812,15 +812,15 @@ async function dispatchShort(r) {
     var uid = ensureUidCookie(r);
 
     if (meta.type === 'pixel') {
-        if (wantsHtmlPreview(r)) {
-            return renderShortPreview(r, meta, captions(metaLang(r, meta)).pixelTitle);
-        }
-
         if (!enforceSticky(r, meta)) {
             return safeRedirect(r, getFallback(r, meta));
         }
 
         await trackPixelEvent(r, meta.publication_id, meta.token, uid);
+        if (wantsHtmlPreview(r)) {
+            return renderShortPreview(r, meta, captions(metaLang(r, meta)).pixelTitle);
+        }
+
         return servePixelImage(r);
     }
 

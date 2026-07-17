@@ -64,6 +64,7 @@ RUN set -eu; \
       curl \
       jq \
       bash \
+      inotify-tools \
       nginx \
       libnginx-mod-http-js \
       pandoc \

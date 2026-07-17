@@ -421,11 +421,11 @@ run_detached() {
   "$@" >/dev/null 2>&1 </dev/null &
 }
 
-if command -v uportal-telegram-notify-event.sh >/dev/null 2>&1; then
+if command -v uportal-telegram-notify-enqueue.sh >/dev/null 2>&1; then
   run_detached env \
     "UPORTAL_ROOT=$UPORTAL_ROOT" \
     "UPORTAL_TOKEN_ROOT=${UPORTAL_TOKEN_ROOT:-$UPORTAL_ROOT/user-tokens}" \
-    uportal-telegram-notify-event.sh \
+    uportal-telegram-notify-enqueue.sh \
       "$EVENT" \
       "$PUB" \
       "$TOKEN" \
@@ -439,10 +439,7 @@ if command -v uportal-telegram-notify-event.sh >/dev/null 2>&1; then
       "$ACCEPT_LANGUAGE" \
       "$RAW_UID" \
       "$PAGE_COOKIE" \
-      "$PW_COOKIE" \
-      "$UA_B64" \
-      "$REFERER_B64" \
-      "$ACCEPT_LANGUAGE_B64"
+      "$PW_COOKIE"
 fi
 
 jq -n \

@@ -533,8 +533,11 @@ for dir in \
   "$UPORTAL_ROOT/index" \
   "$UPORTAL_ROOT/audit" \
   "$UPORTAL_ROOT/config" \
+  "$UPORTAL_ROOT/upload-grants" \
+  "$UPORTAL_ROOT/telegram-notify-queue" \
   "$UPORTAL_ROOT/build/admin" \
   "$UPORTAL_ROOT/build/plugin" \
+  "$DATA_ROOT/upload-temp" \
   "$INBOX_ROOT"
 do
   ensure_dir "$dir"
@@ -543,8 +546,12 @@ done
 # Uploads are handled by nginx WebDAV workers, not by shhoook scripts. Keep the
 # inbox writable for the nginx user while the rest of the data tree can stay
 # root-owned and world-readable.
+chmod 755 "$DATA_ROOT" "$UPORTAL_ROOT"
 chown -R www-data:www-data "$INBOX_ROOT"
 chmod 775 "$INBOX_ROOT"
+chown -R www-data:www-data "$DATA_ROOT/upload-temp"
+chmod 775 "$DATA_ROOT/upload-temp"
+chmod 775 "$UPORTAL_ROOT/upload-grants" "$UPORTAL_ROOT/telegram-notify-queue"
 
 cp -a /opt/uportal/runtime/templates/. "$UPORTAL_ROOT/templates/"
 cp -a /opt/uportal/build/admin/. "$UPORTAL_ROOT/build/admin/"

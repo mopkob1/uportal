@@ -53,7 +53,6 @@ function toSiteRuntimeProxyPath(url) {
   const value = String(url || '')
   if (value.startsWith('/api/site/runtime/')) return value
   if (value.startsWith('/api/admin/')) return `/api/site/runtime${value}`
-  if (value.startsWith('/upload/')) return `/api/site/runtime${value}`
   return value
 }
 
@@ -145,6 +144,11 @@ async function uploadDraftAssets(draft) {
   const [firstUpload, ...remainingUploads] = uniqueUploads
   if (!firstUpload) return
 
+  if (store.state.authMode === 'site-session' && store.state.siteBackendAvailable) {
+    await uploadPublicationFilesWithGrant(draft.publication_id, draft.token, uniqueUploads)
+    return
+  }
+
   await uploadPublicationFile(draft.publication_id, draft.token, firstUpload.name, firstUpload.file)
 
   await Promise.all(
@@ -152,6 +156,20 @@ async function uploadDraftAssets(draft) {
       uploadPublicationFile(draft.publication_id, draft.token, name, file)
     )
   )
+}
+
+async function uploadPublicationFilesWithGrant(publicationId, token, uploads) {
+  const grant = await createUploadGrant(publicationId, token, uploads)
+
+  try {
+    await Promise.all(
+      uploads.map(({ name, file }) =>
+        uploadPublicationFile(publicationId, token, name, file, grant.grant)
+      )
+    )
+  } finally {
+    await revokeUploadGrant(grant.grant).catch(() => {})
+  }
 }
 
 function dataUrlToFile(dataUrl, filename) {
@@ -179,16 +197,48 @@ function dataUrlToFile(dataUrl, filename) {
   }
 }
 
-async function uploadPublicationFile(publicationId, token, filename, file) {
+async function createUploadGrant(publicationId, token, uploads) {
+  const { data } = await api.post('/api/site/upload/grant', {
+    publication_id: publicationId,
+    token,
+    files: uploads.map(({ name, file }) => ({
+      name,
+      size: file.size
+    }))
+  })
+
+  const grant = data?.data?.grant || data?.grant || ''
+  if (!grant) {
+    throw new Error(errorText(data?.error) || 'upload grant was not issued')
+  }
+
+  return {
+    grant,
+    expiresAt: data?.data?.expires_at || ''
+  }
+}
+
+async function revokeUploadGrant(grant) {
+  if (!grant) return
+  await api.post('/api/site/upload/grant/revoke', { grant })
+}
+
+async function uploadPublicationFile(publicationId, token, filename, file, uploadGrant = '') {
   try {
+    const headers = {
+      'Content-Type': file.type || 'application/octet-stream'
+    }
+
+    if (uploadGrant) {
+      headers['X-UPORTAL-Upload-Grant'] = uploadGrant
+    }
+
     await api.put(
       `/upload/${encodeURIComponent(publicationId)}/${encodeURIComponent(token)}/${encodeURIComponent(filename)}`,
       file,
       {
         timeout: UPLOAD_TIMEOUT_MS,
-        headers: {
-          'Content-Type': file.type || 'application/octet-stream'
-        }
+        headers
       }
     )
   } catch (error) {
