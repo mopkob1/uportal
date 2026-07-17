@@ -578,10 +578,13 @@ function pixelRequestQuery(r, meta, uid) {
 }
 
 async function trackPixelEvent(r, meta, uid) {
-    var trackUrl = '/__uportal_track_pixel_shhoook?' + pixelRequestQuery(r, meta, uid);
+    var trackArgs = pixelRequestQuery(r, meta, uid);
 
     try {
-        var reply = await r.subrequest(trackUrl, { method: 'POST' });
+        var reply = await r.subrequest('/__uportal_track_pixel_shhoook', {
+            method: 'POST',
+            args: trackArgs
+        });
         if (!reply || reply.status < 200 || reply.status >= 300) {
             r.error('pixel shhoook subrequest failed status=' + (reply ? reply.status : 'none'));
         }
