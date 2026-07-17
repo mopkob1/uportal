@@ -555,60 +555,15 @@ function requestHeader(r, name) {
     return String(r.headersIn[name] || '');
 }
 
-function pixelRequestQuery(r, uid) {
-    var xff = requestHeader(r, 'X-Forwarded-For');
-    var ip = requestHeader(r, 'X-Real-IP') || xff.split(',')[0].trim();
-    var ua = requestHeader(r, 'User-Agent');
-    var referer = requestHeader(r, 'Referer');
-    var acceptLanguage = requestHeader(r, 'Accept-Language');
-
-    return [
-        ['uid', uid || ''],
-        ['original_uri', requestOriginalUri(r)],
-        ['ip', ip],
-        ['xff', xff],
-        ['proto', requestHeader(r, 'X-Forwarded-Proto') || String(r.variables.scheme || '')],
-        ['host', requestHeader(r, 'Host')],
-        ['ua_b64', b64urlText(ua)],
-        ['referer_b64', b64urlText(referer)],
-        ['accept_language_b64', b64urlText(acceptLanguage)]
-    ].map(function (pair) {
-        return encodeURIComponent(pair[0]) + '=' + encodeURIComponent(String(pair[1] || ''));
-    }).join('&');
-}
-
-async function trackPixelEvent(r, publicationId, token, uid) {
-    var query = [
-        ['event', 'pixel'],
-        ['publication', publicationId],
-        ['token', token]
-    ].map(function (pair) {
-        return encodeURIComponent(pair[0]) + '=' + encodeURIComponent(String(pair[1] || ''));
-    }).join('&') + '&' + pixelRequestQuery(r, uid);
+async function trackPixelEvent(r, meta, uid) {
+    var trackUrl = signedPixelUrl(r, meta) +
+        '&uid=' + encodeURIComponent(String(uid || '')) +
+        '&original_uri=' + encodeURIComponent(requestOriginalUri(r));
 
     try {
-        await r.subrequest(
-            '/__uportal_track_pixel_shhoook?' + query,
-            { method: 'POST' }
-        );
+        await r.subrequest(trackUrl, { method: 'GET' });
     } catch (e) {
         r.error('pixel shhoook subrequest failed: ' + e);
-    }
-
-    fireAndForgetSubrequest(
-        r,
-        '/__uportal_track_pixel_n8n?' + query
-    );
-
-}
-
-function fireAndForgetSubrequest(r, uri) {
-    try {
-        r.subrequest(uri, { method: 'POST' }).catch(function (e) {
-            r.error('background subrequest failed: ' + e);
-        });
-    } catch (e) {
-        r.error('background subrequest failed: ' + e);
     }
 }
 
@@ -819,7 +774,7 @@ async function dispatchShort(r) {
             return safeRedirect(r, getFallback(r, meta));
         }
 
-        await trackPixelEvent(r, meta.publication_id, meta.token, uid);
+        await trackPixelEvent(r, meta, uid);
         return servePixelImage(r);
     }
 
@@ -1213,7 +1168,7 @@ async function pixelGate(r) {
     var uid = ensureUidCookie(r);
     if (!enforceSticky(r, meta)) return r.return(404);
 
-    await trackPixelEvent(r, pt.publication_id, pt.token, uid);
+    await trackPixelEvent(r, meta, uid);
 
     return servePixelImage(r);
 }
