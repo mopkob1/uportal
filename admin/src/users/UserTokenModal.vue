@@ -14,10 +14,6 @@
           <n-input v-model:value="form.user" :placeholder="captions.userPlaceholder" />
         </n-form-item>
 
-        <n-form-item :label="captions.scopeLabel">
-          <n-dynamic-tags v-model:value="form.scope" />
-        </n-form-item>
-
         <n-form-item :label="captions.statusLabel">
           <n-select v-model:value="form.status" :options="statusOptions" />
         </n-form-item>

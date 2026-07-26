@@ -34,6 +34,17 @@ TMP="$(mktemp)"
 jq \
   --argjson patch "$PAYLOAD" '
   .user = ($patch.user // .user // "")
+  | .tags = (
+      if (($patch.tags // null) | type) == "array" then
+        $patch.tags | map(tostring | gsub("^\\s+|\\s+$"; "")) | map(select(length > 0))
+      elif (($patch.tags // null) | type) == "string" then
+        $patch.tags | split(",") | map(gsub("^\\s+|\\s+$"; "")) | map(select(length > 0))
+      elif ((.tags // null) | type) == "array" then
+        .tags
+      else
+        []
+      end
+    )
   | .active_clients = (
       if (($patch.active_clients // null) | type) == "object" then
         {

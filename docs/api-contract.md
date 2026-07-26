@@ -892,6 +892,7 @@ Decoded payload may update only:
 ```json
 {
   "user": "demo",
+  "tags": ["team"],
   "active_clients": {
     "web": "web-1",
     "plugin": "plugin-1"
@@ -899,8 +900,8 @@ Decoded payload may update only:
 }
 ```
 
-Status, scope, tags, `user_id`, rotation fields and `known_clients` are
-preserved server-side.
+Status, scope, `user_id`, rotation fields and `known_clients` are preserved
+server-side.
 
 ## Tracking Endpoint
 

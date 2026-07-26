@@ -436,6 +436,7 @@ export async function tokenUpsert(item, adminHeader, adminToken) {
 export async function tokenSelfUpsert(item) {
   const payload = {
     user: item.user || '',
+    tags: item.tags || [],
     active_clients: {
       web: item.active_clients?.web || '',
       plugin: item.active_clients?.plugin || ''
