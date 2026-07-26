@@ -11,6 +11,7 @@ const saveIds = ids.filter(id => id !== 'clientUid')
 
 const statusEl = document.getElementById('status')
 const versionBadge = document.getElementById('versionBadge')
+const settingsLogoLink = document.getElementById('settingsLogoLink')
 let captions = null
 let loadedApiBase = ''
 
@@ -37,6 +38,7 @@ async function load() {
   loadedApiBase = data.apiBase || ''
   syncDomainDerivedFields()
   updateVersionBadge(data.apiBase)
+  updateLogoLink(data.apiBase)
 }
 
 async function save() {
@@ -57,6 +59,7 @@ async function save() {
   await browser.storage.local.set(data)
   loadedApiBase = data.apiBase || ''
   updateVersionBadge(data.apiBase)
+  updateLogoLink(data.apiBase)
   statusEl.textContent = captions.saved
 }
 
@@ -89,6 +92,10 @@ function updateVersionBadge(apiBase) {
   versionBadge.textContent = `v${browser.runtime.getManifest().version}${domain ? ` (${domain})` : ''}`
 }
 
+function updateLogoLink(apiBase) {
+  settingsLogoLink.href = apiBase || '#'
+}
+
 function syncDomainDerivedFields() {
   const apiBase = document.getElementById('apiBase').value.trim()
   const defaultMailFrom = document.getElementById('defaultMailFrom')
@@ -100,6 +107,7 @@ function syncDomainDerivedFields() {
   }
 
   updateVersionBadge(apiBase)
+  updateLogoLink(apiBase)
 }
 
 function domainFromUrl(value) {

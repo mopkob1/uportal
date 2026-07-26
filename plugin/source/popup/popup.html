@@ -8,20 +8,23 @@
 <body>
   <header>
     <div class="brand">
-      <strong>UPORTAL</strong>
+      <a id="popupLogoLink" class="logo-link" href="#" target="_blank" rel="noopener noreferrer" title="UPORTAL">
+        <img id="popupLogo" class="logo" src="../icons/uportal-color-96.png" alt="UPORTAL">
+      </a>
       <span id="versionBadge" class="version-badge"></span>
     </div>
     <div class="top-controls">
+      <div class="enabled-switch" role="group" aria-label="UPORTAL state">
+        <button id="switchOff" type="button" class="switch-segment">OFF</button>
+        <button id="switchOn" type="button" class="switch-segment">ON</button>
+      </div>
       <input id="tagFilter" type="search" placeholder="tags...">
       <button id="refresh" type="button" title="Refresh dictionary">↻</button>
     </div>
   </header>
 
   <section class="send-mode">
-    <label>
-      <input id="noUportal" type="checkbox">
-      <span id="noUportalLabel">Send this email without UPORTAL</span>
-    </label>
+    <span id="pluginStateText" class="state-text">UPORTAL is ON</span>
     <button id="copyClientUid" class="uid-copy" type="button" title="Copy plugin UID">UID</button>
   </section>
 

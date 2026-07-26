@@ -38,6 +38,7 @@ normalize_bridge_url() {
 }
 
 BASE_URL="$(normalize_base_url "${UPORTAL_PUBLIC_BASE_URL:-${UPORTAL_BASE_URL:-}}")"
+SHORT_BASE_URL="$(normalize_base_url "${UPORTAL_SHORT_BASE_URL:-$BASE_URL}")"
 FALLBACK_URL="${UPORTAL_FALLBACK_URL:-}"
 if [ -z "$FALLBACK_URL" ] || has_compose_template_garbage "$FALLBACK_URL"; then
   FALLBACK_URL="$BASE_URL/link-fallback"
@@ -198,7 +199,7 @@ ensure_plugin_local_download_link() {
     url="$(jq -r '.short_url // ""' "$meta_file" 2>/dev/null || true)"
     if [ -z "$url" ]; then
       short_id="$(jq -r '.short_id // .short // ""' "$meta_file" 2>/dev/null || true)"
-      [ -n "$short_id" ] && url="$BASE_URL/s/$short_id"
+      [ -n "$short_id" ] && url="$SHORT_BASE_URL/s/$short_id"
     fi
     [ -n "$url" ] && PLUGIN_XPI_LOCAL_URL="$url"
     hide_plugin_link_from_first_user "$publication_id" "$token"
@@ -568,6 +569,7 @@ config_file="$UPORTAL_ROOT/config/uportal.env"
 cat > "$config_file" <<EOF
 UPORTAL_PUBLIC_BASE_URL=$BASE_URL
 UPORTAL_BASE_URL=$BASE_URL
+UPORTAL_SHORT_BASE_URL=$SHORT_BASE_URL
 UPORTAL_FALLBACK_URL=$FALLBACK_URL
 EOF
 chmod 644 "$config_file"
@@ -657,11 +659,14 @@ fi
 
 escaped_domain="$(escape_sed_re "$DOMAIN")"
 escaped_base_regex="$(escape_sed_re "$BASE_URL")"
+escaped_short_base_regex="$(escape_sed_re "$SHORT_BASE_URL")"
 
 find /etc/nginx/conf.d /etc/shhoook /usr/local/bin "$UPORTAL_ROOT/templates" "$UPORTAL_ROOT/build/admin" -type f -exec sed -i \
   -e "s|__UPORTAL_BASE_URL__|$BASE_URL|g" \
+  -e "s|__UPORTAL_SHORT_BASE_URL__|$SHORT_BASE_URL|g" \
   -e "s|__UPORTAL_DOMAIN__|$DOMAIN|g" \
   -e "s|__UPORTAL_BASE_URL_REGEX__|$escaped_base_regex|g" \
+  -e "s|__UPORTAL_SHORT_BASE_URL_REGEX__|$escaped_short_base_regex|g" \
   -e "s|__UPORTAL_DOMAIN_REGEX__|$escaped_domain|g" \
   -e "s|CHANGE_ME_UPORTAL_ADMIN_SECRET|$ADMIN_SECRET|g" \
   -e "s|CHANGE_ME_DOWNLOAD_SALT|$DL_SALT|g" \

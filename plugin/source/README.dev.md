@@ -27,8 +27,11 @@ This directory contains the extracted source of
 
 Stored in `browser.storage.local`:
 
+- `enabled`, default `true`. Controls popup availability, send processing and
+  compose action icon color.
 - `apiBase`, default `http://localhost:8080`.
-- `pixelBaseUrl`, defaults to `apiBase` when unset.
+- `pixelBaseUrl`, optional override for pixel short-link host. When unset, the
+  extension uses the `short_url` returned by the API.
 - `userToken`.
 - `dictionaryUrl`, default `http://localhost:8080/api/admin/dictionary`.
 - `defaultMailFrom`, defaults to `no-reply@<api-base second-level domain>`.
@@ -59,11 +62,13 @@ whether to:
 
 The user decision times out after 120 seconds and defaults to cancel.
 
-## Per-Message Disable
+## Global Disable
 
-The popup checkbox "Отправить это письмо без UPORTAL" stores a flag by compose
-tab id. On send, UPORTAL API calls are skipped, placeholders are replaced with
-plain dictionary URLs, and no pixel is added.
+The popup `OFF | ON` switch stores `enabled` globally. When disabled, popup
+controls for dictionary insertion are locked. On send, UPORTAL API calls are
+skipped, placeholders are replaced with plain dictionary URLs when possible,
+and no pixel is added. The compose action icon switches to the grayscale
+variant.
 
 ## Known Limits
 

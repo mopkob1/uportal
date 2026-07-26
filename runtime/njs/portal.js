@@ -844,7 +844,7 @@ async function dispatchShort(r) {
         var tplp = readText(templatePath(r, 'page-open.html', meta));
         var langp = metaLang(r, meta);
         var capsp = captions(langp);
-        var base = cfg(r, 'uportal_base_url', 'http://localhost:8080');
+        var base = cfg(r, 'uportal_short_base_url', cfg(r, 'uportal_base_url', 'http://localhost:8080'));
         var targetUrl = '/p/' + meta.publication_id + '/' + meta.token + '/';
         var imageUrl = publicAssetUrl(r, meta);
 

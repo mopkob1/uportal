@@ -32,6 +32,7 @@ Edit:
 ```env
 UPORTAL_DOMAIN=links.example.com
 UPORTAL_BASE_URL=https://links.example.com
+UPORTAL_SHORT_BASE_URL=https://go.example.com
 UPORTAL_HTTP_PORT=18080
 UPORTAL_BIND_ADDR=127.0.0.1
 UPORTAL_DATA_DIR=./data/files
@@ -40,6 +41,9 @@ UPORTAL_UI_LANG=en
 
 `UPORTAL_PLUGIN_DEFAULT_BASE_URL` controls the default server URL baked into the
 generated XPI. If omitted, it uses `UPORTAL_BASE_URL`.
+
+`UPORTAL_SHORT_BASE_URL` controls generated short links (`/s/<id>`) and pixel
+links. If omitted, short links use `UPORTAL_BASE_URL`.
 
 `UPORTAL_DATA_DIR` is a host directory mounted to `/data/files` in the
 container. The default `./data/files` keeps runtime data next to this deployment

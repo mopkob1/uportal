@@ -14,10 +14,32 @@ main {
   border-radius: 10px;
 }
 
-h1 {
+.settings-header {
   display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+h1 {
+  display: inline-flex;
   align-items: baseline;
   gap: 8px;
+  margin: 0;
+}
+
+.logo-link {
+  display: inline-flex;
+  align-items: center;
+  text-decoration: none;
+}
+
+.logo {
+  display: block;
+  width: 64px;
+  height: 64px;
+  object-fit: contain;
 }
 
 .version-badge {

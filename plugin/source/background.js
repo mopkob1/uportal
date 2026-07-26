@@ -1,4 +1,5 @@
 const DEFAULTS = {
+  enabled: true,
   apiBase: 'http://localhost:8080',
   pixelBaseUrl: '',
   userToken: '',
@@ -12,10 +13,21 @@ const DEFAULTS = {
 const PLACEHOLDER_RE = /\[\[uportal:([a-zA-Z0-9_-]+)\]\]/g
 const API_TIMEOUT_MS = 7000
 const USER_DECISION_TIMEOUT_MS = 120000
+const ICONS_ON = {
+  16: 'icons/uportal-color-16.png',
+  32: 'icons/uportal-color-32.png',
+  48: 'icons/uportal-color-48.png',
+  64: 'icons/uportal-color-64.png'
+}
+const ICONS_OFF = {
+  16: 'icons/uportal-gray-16.png',
+  32: 'icons/uportal-gray-32.png',
+  48: 'icons/uportal-gray-48.png',
+  64: 'icons/uportal-gray-64.png'
+}
 
 let dictionaryCache = null
 const pendingDecisions = new Map()
-const composeNoUportal = new Map()
 let backgroundCaptionsPromise = null
 
 function getBackgroundCaptions() {
@@ -32,6 +44,7 @@ async function backgroundMessage(key, values = {}) {
 
 async function init() {
   await ensureDefaults()
+  await updateComposeActionIcon()
 
   if (browser.composeScripts && browser.composeScripts.register) {
     await browser.composeScripts.register({
@@ -47,9 +60,7 @@ async function ensureDefaults() {
 
   for (const [key, value] of Object.entries(DEFAULTS)) {
     if (current[key] === undefined) {
-      if (key === 'pixelBaseUrl') {
-        patch[key] = current.apiBase || DEFAULTS.apiBase
-      } else if (key === 'dictionaryUrl') {
+      if (key === 'dictionaryUrl') {
         patch[key] = `${current.apiBase || DEFAULTS.apiBase}/api/admin/dictionary`
       } else if (key === 'defaultMailFrom') {
         patch[key] = defaultMailFromForBase(apiBase)
@@ -75,10 +86,33 @@ async function ensureDefaults() {
 async function getSettings() {
   const settings = await browser.storage.local.get(Object.keys(DEFAULTS))
   const merged = { ...DEFAULTS, ...settings }
+  merged.enabled = merged.enabled !== false
   if (!merged.defaultMailFrom) {
     merged.defaultMailFrom = defaultMailFromForBase(merged.apiBase)
   }
   return merged
+}
+
+async function setPluginEnabled(enabled) {
+  const value = enabled !== false
+  await browser.storage.local.set({ enabled: value })
+  await updateComposeActionIcon(value)
+  return { enabled: value }
+}
+
+async function updateComposeActionIcon(enabled = null) {
+  const isEnabled = enabled === null
+    ? (await getSettings()).enabled
+    : enabled !== false
+
+  const action = browser.composeAction || browser.browserAction
+  if (!action?.setIcon) return
+
+  try {
+    await action.setIcon({ path: isEnabled ? ICONS_ON : ICONS_OFF })
+  } catch (error) {
+    console.warn('UPORTAL icon update failed', error)
+  }
 }
 
 async function loadDictionary(force = false) {
@@ -349,7 +383,11 @@ async function publishPixel(details, publicationId) {
   const common = await buildCommonPayload(details, publicationId, token, 'pixel')
   const data = await apiPost('/api/admin/publish/pixel', common)
   const shortUrl = await extractShortUrl(data, settings.apiBase)
-  return normalizeShortBaseUrl(shortUrl, settings.pixelBaseUrl || settings.apiBase)
+  const pixelBaseUrl = String(settings.pixelBaseUrl || '').replace(/\/+$/g, '')
+  const apiBase = String(settings.apiBase || '').replace(/\/+$/g, '')
+  return pixelBaseUrl && pixelBaseUrl !== apiBase
+    ? normalizeShortBaseUrl(shortUrl, pixelBaseUrl)
+    : shortUrl
 }
 
 function buildPixelImg(url) {
@@ -450,27 +488,24 @@ browser.runtime.onMessage.addListener((message) => {
     return loadDictionary(true)
   }
   if (message?.type === 'settings:get') return getSettings()
-  if (message?.type === 'compose:no-uportal:get') {
-    return Promise.resolve({ enabled: !!composeNoUportal.get(Number(message.tabId)) })
-  }
-  if (message?.type === 'compose:no-uportal:set') {
-    const tabId = Number(message.tabId)
-    if (message.enabled) composeNoUportal.set(tabId, true)
-    else composeNoUportal.delete(tabId)
-    return Promise.resolve({ ok: true })
-  }
+  if (message?.type === 'plugin:enabled:set') return setPluginEnabled(message.enabled)
   if (message?.type === 'server-failure-decision') {
     resolveDecision(message.id, message.choice)
     return Promise.resolve({ ok: true })
   }
 })
 
+browser.storage.onChanged.addListener((changes, areaName) => {
+  if (areaName === 'local' && changes.enabled) {
+    updateComposeActionIcon(changes.enabled.newValue !== false)
+  }
+})
+
 browser.compose.onBeforeSend.addListener(async (tab, details) => {
   const body = String(details.body || '')
-  const tabId = Number(tab?.id)
+  const settings = await getSettings()
 
-  if (composeNoUportal.get(tabId)) {
-    composeNoUportal.delete(tabId)
+  if (!settings.enabled) {
     return {
       details: {
         body: buildPlainBody(body)
@@ -480,7 +515,6 @@ browser.compose.onBeforeSend.addListener(async (tab, details) => {
 
   try {
     const matches = [...body.matchAll(PLACEHOLDER_RE)]
-    const settings = await getSettings()
     const publicationId = `mail-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`
 
     let dictionary = Array.isArray(dictionaryCache) ? dictionaryCache : []

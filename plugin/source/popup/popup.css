@@ -17,8 +17,22 @@ header, footer, .send-mode {
 
 .brand {
   display: inline-flex;
-  align-items: baseline;
+  align-items: center;
   gap: 6px;
+  min-width: 0;
+}
+
+.logo-link {
+  display: inline-flex;
+  align-items: center;
+  text-decoration: none;
+}
+
+.logo {
+  display: block;
+  width: 54px;
+  height: 54px;
+  object-fit: contain;
 }
 
 .version-badge {
@@ -39,10 +53,10 @@ footer {
   background: #fbfbfb;
 }
 
-.send-mode label {
-  display: flex;
-  align-items: center;
-  gap: 6px;
+.state-text {
+  color: #536171;
+  font-size: 12px;
+  font-weight: 600;
 }
 
 .uid-copy {
@@ -60,6 +74,35 @@ footer {
   gap: 6px;
 }
 
+.enabled-switch {
+  display: inline-grid;
+  grid-template-columns: 1fr 1fr;
+  overflow: hidden;
+  border: 1px solid #aeb7c4;
+  border-radius: 999px;
+  background: #f4f6f8;
+}
+
+.switch-segment {
+  min-width: 38px;
+  height: 28px;
+  padding: 0 9px;
+  border: 0;
+  background: transparent;
+  color: #667085;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.switch-segment.is-active {
+  background: #0b6b3a;
+  color: #fff;
+}
+
+#switchOff.is-active {
+  background: #3f3f46;
+}
+
 #tagFilter {
   width: 180px;
   padding: 6px 8px;
@@ -69,6 +112,12 @@ footer {
 
 button {
   cursor: pointer;
+}
+
+button:disabled,
+input:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
 }
 
 #refresh {
@@ -138,6 +187,10 @@ button {
   border: 1px solid #ccc;
   border-radius: 5px;
   background: white;
+}
+
+.is-disabled .item {
+  opacity: 0.55;
 }
 
 .muted {

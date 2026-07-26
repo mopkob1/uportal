@@ -20,6 +20,17 @@ uportal_public_base_url() {
   printf '%s' "${value:-http://localhost:8080}"
 }
 
+uportal_short_base_url() {
+  local value="${UPORTAL_SHORT_BASE_URL:-}"
+  value="${value%/}"
+  if [ -n "$value" ]; then
+    printf '%s' "$value"
+    return 0
+  fi
+
+  uportal_public_base_url
+}
+
 uportal_fallback_url() {
   local value="${UPORTAL_FALLBACK_URL:-}"
   value="${value%/}"

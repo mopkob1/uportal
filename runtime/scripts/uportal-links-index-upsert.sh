@@ -125,11 +125,11 @@ fi
 
 [ -f "$META_FILE" ] || json_error "meta not found"
 
-BASE_URL="$(uportal_public_base_url)"
+SHORT_BASE_URL="$(uportal_short_base_url)"
 jq -c \
   --arg op "$OP" \
   --arg indexed_at "$(date -u +"%Y-%m-%dT%H:%M:%SZ")" \
-  --arg base_url "$BASE_URL" '
+  --arg base_url "$SHORT_BASE_URL" '
   (.actions // [] | sort_by(.date // "")) as $actions
   | ($actions | last) as $last_action_any
   | ($actions | map(.date // empty) | first) as $first_action_date
@@ -146,10 +146,10 @@ jq -c \
       status_history: (if (.status_history | type) == "array" then .status_history else [] end),
       short_id: (.short_id // .short // ""),
       short_url: (
-        if ((.short_url // .shortlink // "") != "" and (((.short_url // .shortlink) | tostring) | startswith("http")))
-        then (.short_url // .shortlink)
-        elif ((.short_id // .short // "") != "")
+        if ((.short_id // .short // "") != "")
         then ($base_url + "/s/" + (.short_id // .short))
+        elif ((.short_url // .shortlink // "") != "" and (((.short_url // .shortlink) | tostring) | startswith("http")))
+        then (.short_url // .shortlink)
         else ""
         end
       ),

@@ -2,47 +2,29 @@ const content = document.getElementById('content')
 const refresh = document.getElementById('refresh')
 const tagFilter = document.getElementById('tagFilter')
 const insertSelected = document.getElementById('insertSelected')
-const noUportal = document.getElementById('noUportal')
 const copyClientUid = document.getElementById('copyClientUid')
 const versionBadge = document.getElementById('versionBadge')
-const noUportalLabel = document.getElementById('noUportalLabel')
+const popupLogo = document.getElementById('popupLogo')
+const popupLogoLink = document.getElementById('popupLogoLink')
+const pluginStateText = document.getElementById('pluginStateText')
+const switchOff = document.getElementById('switchOff')
+const switchOn = document.getElementById('switchOn')
 
 let dictionary = []
 let captions = null
+let pluginEnabled = true
 
 updateVersionBadge('')
 
 refresh.addEventListener('click', () => load(true))
 tagFilter.addEventListener('input', () => render())
 insertSelected.addEventListener('click', () => insertChecked())
-noUportal.addEventListener('change', () => saveNoUportalFlag())
 copyClientUid.addEventListener('click', () => copyPluginUid())
+switchOff.addEventListener('click', () => savePluginEnabled(false))
+switchOn.addEventListener('click', () => savePluginEnabled(true))
 async function getActiveTab() {
   const [tab] = await browser.tabs.query({ active: true, currentWindow: true })
   return tab || null
-}
-
-async function loadNoUportalFlag() {
-  const tab = await getActiveTab()
-  if (!tab?.id) return
-
-  const state = await browser.runtime.sendMessage({
-    type: 'compose:no-uportal:get',
-    tabId: tab.id
-  })
-
-  noUportal.checked = !!state?.enabled
-}
-
-async function saveNoUportalFlag() {
-  const tab = await getActiveTab()
-  if (!tab?.id) return
-
-  await browser.runtime.sendMessage({
-    type: 'compose:no-uportal:set',
-    tabId: tab.id,
-    enabled: noUportal.checked
-  })
 }
 
 async function copyPluginUid() {
@@ -59,6 +41,36 @@ function updateVersionBadge(apiBase) {
   versionBadge.textContent = `v${browser.runtime.getManifest().version}${domain ? ` (${domain})` : ''}`
 }
 
+async function savePluginEnabled(enabled) {
+  const state = await browser.runtime.sendMessage({
+    type: 'plugin:enabled:set',
+    enabled
+  })
+
+  pluginEnabled = state?.enabled !== false
+  updateUiState()
+  if (pluginEnabled) {
+    await load(false)
+  } else {
+    render()
+  }
+}
+
+function updateUiState() {
+  document.body.classList.toggle('is-disabled', !pluginEnabled)
+  popupLogo.src = pluginEnabled
+    ? '../icons/uportal-color-96.png'
+    : '../icons/uportal-gray-96.png'
+  switchOn.classList.toggle('is-active', pluginEnabled)
+  switchOff.classList.toggle('is-active', !pluginEnabled)
+  switchOn.setAttribute('aria-pressed', String(pluginEnabled))
+  switchOff.setAttribute('aria-pressed', String(!pluginEnabled))
+  tagFilter.disabled = !pluginEnabled
+  refresh.disabled = !pluginEnabled
+  insertSelected.disabled = !pluginEnabled
+  pluginStateText.textContent = pluginEnabled ? captions.stateOn : captions.stateOff
+}
+
 function domainFromUrl(value) {
   try {
     return new URL(String(value || '')).hostname || ''
@@ -68,6 +80,11 @@ function domainFromUrl(value) {
 }
 
 async function load(force = false) {
+  if (!pluginEnabled) {
+    render()
+    return
+  }
+
   content.innerHTML = muted(captions.loading)
 
   try {
@@ -79,6 +96,11 @@ async function load(force = false) {
 }
 
 function render() {
+  if (!pluginEnabled) {
+    content.innerHTML = muted(captions.disabled)
+    return
+  }
+
   const items = filteredItems()
   content.innerHTML = ''
 
@@ -134,12 +156,15 @@ function filteredItems() {
 }
 
 function insertChecked() {
+  if (!pluginEnabled) return
   const ids = [...content.querySelectorAll('input[type="checkbox"]:checked')].map(item => item.value)
   if (!ids.length) return
   insertItems(ids)
 }
 
 async function insertItems(ids) {
+  if (!pluginEnabled) return
+
   const selected = ids
     .map(id => dictionary.find(item => item.id === id))
     .filter(Boolean)
@@ -181,17 +206,18 @@ function escapeHtml(value) {
 async function init() {
   captions = await UPortalCaptions.get('popup')
   const settings = await browser.runtime.sendMessage({ type: 'settings:get' })
+  pluginEnabled = settings.enabled !== false
 
   document.title = captions.title
   updateVersionBadge(settings.apiBase)
+  popupLogoLink.href = settings.apiBase || '#'
   tagFilter.placeholder = captions.tagFilterPlaceholder
   refresh.title = captions.refreshTitle
-  noUportalLabel.textContent = captions.noUportal
   copyClientUid.title = captions.copyClientUidTitle
   copyClientUid.textContent = captions.uidButton
   insertSelected.textContent = captions.insertSelected
 
-  await loadNoUportalFlag().catch(() => {})
+  updateUiState()
   await load(false)
 }
 

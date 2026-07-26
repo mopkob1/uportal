@@ -7,10 +7,15 @@
 </head>
 <body>
   <main>
-    <h1>
-      <span id="headingText">UPORTAL Link Inserter</span>
-      <span id="versionBadge" class="version-badge"></span>
-    </h1>
+    <header class="settings-header">
+      <h1>
+        <span id="headingText">Link Inserter</span>
+        <span id="versionBadge" class="version-badge"></span>
+      </h1>
+      <a id="settingsLogoLink" class="logo-link" href="#" target="_blank" rel="noopener noreferrer" title="UPORTAL">
+        <img class="logo" src="../icons/uportal-color-96.png" alt="UPORTAL">
+      </a>
+    </header>
 
     <label>
       <span id="apiBaseLabel">API base URL</span>
@@ -32,7 +37,7 @@
 
     <label>
       <span id="pixelBaseUrlLabel">Pixel base URL</span>
-      <input id="pixelBaseUrl" type="url" placeholder="empty means API base URL">
+      <input id="pixelBaseUrl" type="url" placeholder="empty means API response URL">
     </label>
 
     <label>

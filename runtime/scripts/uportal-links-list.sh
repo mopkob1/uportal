@@ -22,6 +22,7 @@ else
   source "$(dirname "$0")/uportal-config.sh"
 fi
 BASE_URL="$(uportal_public_base_url)"
+SHORT_BASE_URL="$(uportal_short_base_url)"
 RECENT_META_MINUTES="${UPORTAL_LINKS_RECENT_META_MINUTES:-1440}"
 
 if [ -z "$USER_TOKEN" ]; then
@@ -96,7 +97,7 @@ if [ -f "$INDEX_FILE" ]; then
     | while IFS= read -r -d '' file; do
         jq -c \
           --arg actor "$USER_TOKEN" \
-          --arg base_url "$BASE_URL" '
+          --arg base_url "$SHORT_BASE_URL" '
           ([.actions[]? | select(.actor == $actor)] | sort_by(.date) | last) as $last_action
           | (.actions // [] | map(.date // empty) | first) as $first_action_date
           | select($last_action != null)
@@ -272,7 +273,7 @@ find "$SEARCH_ROOT" -type f -name '*.json' -print0 \
       --arg query "$QUERY" \
       --arg from "$FROM" \
       --arg to "$TO" \
-      --arg base_url "$BASE_URL" \
+      --arg base_url "$SHORT_BASE_URL" \
       --arg preview_url "$preview_url" '
       def text_match($text; $query):
         $query == ""

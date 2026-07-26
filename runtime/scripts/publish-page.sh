@@ -220,9 +220,9 @@ rm -f "$pandoc_error_file"
 [ -f "$PAGE_DIR/content.html" ] || json_error "content.html was not created"
 
 META_FILE="$META_DIR/$token.json"
-BASE_URL="$(uportal_public_base_url)"
+SHORT_BASE_URL="$(uportal_short_base_url)"
 [ -n "$fallback_url" ] || fallback_url="$(uportal_fallback_url)"
-HTML="<a href=\"$BASE_URL/s/$short\">$link</a>"
+HTML="<a href=\"$SHORT_BASE_URL/s/$short\">$link</a>"
 
 load_actions "$META_FILE"
 STATUS_HISTORY_JSON="$(jq -c 'if (.status_history | type) == "array" then .status_history else [] end' "$META_FILE" 2>/dev/null || printf '[]')"
@@ -326,8 +326,8 @@ jq -n \
   --arg token "$token" \
   --arg short_id "$short" \
   --arg short "$short" \
-  --arg short_url "$BASE_URL/s/$short" \
-  --arg base_url "$BASE_URL" \
+  --arg short_url "$SHORT_BASE_URL/s/$short" \
+  --arg base_url "$SHORT_BASE_URL" \
   --arg pre "$pre" \
   --arg post "$post" \
   --arg sticky "$sticky" \

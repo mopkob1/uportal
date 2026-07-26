@@ -119,9 +119,9 @@ write_short "$short"
 
 META_FILE="$META_DIR/$token.json"
 
-BASE_URL="$(uportal_public_base_url)"
+SHORT_BASE_URL="$(uportal_short_base_url)"
 [ -n "$fallback_url" ] || fallback_url="$(uportal_fallback_url)"
-HTML="<img src=\"$BASE_URL/s/$short\" width=\"1\" height=\"1\" alt=\"\" />"
+HTML="<img src=\"$SHORT_BASE_URL/s/$short\" width=\"1\" height=\"1\" alt=\"\" />"
 load_actions "$META_FILE"
 STATUS_HISTORY_JSON="$(jq -c 'if (.status_history | type) == "array" then .status_history else [] end' "$META_FILE" 2>/dev/null || printf '[]')"
 
@@ -135,8 +135,8 @@ jq -n \
   --arg token "$token" \
   --arg short_id "$short" \
   --arg short "$short" \
-  --arg short_url "$BASE_URL/s/$short" \
-  --arg base_url "$BASE_URL" \
+  --arg short_url "$SHORT_BASE_URL/s/$short" \
+  --arg base_url "$SHORT_BASE_URL" \
   --arg sticky "$sticky" \
   --arg subj "$subj" \
   --argjson mails "$mails" \
@@ -197,8 +197,8 @@ jq -n \
   --arg token "$token" \
   --arg short_id "$short" \
   --arg short "$short" \
-  --arg short_url "$BASE_URL/s/$short" \
-  --arg base_url "$BASE_URL" \
+  --arg short_url "$SHORT_BASE_URL/s/$short" \
+  --arg base_url "$SHORT_BASE_URL" \
   --arg sticky "$sticky" \
   --arg subj "$subj" \
   --argjson mails "$mails" \
