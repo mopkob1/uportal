@@ -1,6 +1,6 @@
 <template>
   <n-space vertical size="large">
-    <n-collapse v-model:expanded-names="adminPanelExpanded">
+    <n-collapse v-if="showAdminAccessPanel" v-model:expanded-names="adminPanelExpanded">
       <n-collapse-item :title="captions.adminAccessTitle" name="admin-access">
         <n-card>
           <n-grid :cols="2" :x-gap="16">
@@ -121,7 +121,12 @@ const selectedItem = ref(null)
 const MIN_PAGE_SIZE = 10
 
 const tokens = computed(() => store.state.tokens || [])
-const hasAdminToken = computed(() => !!store.state.adminToken)
+const canUseAdminAccess = computed(() => {
+  if (!store.state.siteBackendAvailable) return true
+  return hasAdmin14Tag(store.state.siteSession)
+})
+const showAdminAccessPanel = computed(() => canUseAdminAccess.value)
+const hasAdminToken = computed(() => canUseAdminAccess.value && !!store.state.adminToken)
 const pager = computed(() => store.state.tokensPager || {
   page: 1,
   limit: 10,
@@ -164,7 +169,7 @@ const columns = [
     key: 'scope',
     render(row) {
       return h(NSpace, { size: 4 }, {
-        default: () => normalizeArray(row.scope).map(item =>
+        default: () => visibleRuntimeScopes(row).map(item =>
             h(NTag, { size: 'small' }, { default: () => formatScope(item) })
         )
       })
@@ -660,6 +665,22 @@ function normalizeArray(value) {
     return value.split(',').map(item => item.trim()).filter(Boolean)
   }
   return []
+}
+
+function hasAdmin14Tag(session) {
+  const tags = [
+    ...normalizeArray(session?.tags),
+    ...normalizeArray(session?.account?.tags)
+  ]
+  return tags.includes('Admin14')
+}
+
+function visibleRuntimeScopes(row) {
+  const scopes = normalizeArray(row.scope || row.payload?.scope)
+  if (!store.state.siteBackendAvailable || hasAdmin14Tag(store.state.siteSession)) {
+    return scopes
+  }
+  return scopes.filter(item => item !== 'admin')
 }
 
 function maskToken(token) {
