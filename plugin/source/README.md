@@ -5,7 +5,6 @@ Thunderbird WebExtension для вставки ссылок из словаря 
 ## Настройки
 
 - `API base URL` — сервер UPORTAL для API-запросов.
-- `Pixel base URL` — публичный base URL для pixel short-link. Если поле пустое, используется `API base URL`.
 - `X-User-Token` — пользовательский токен UPORTAL.
 - `URL словаря` — endpoint словаря, например `http://localhost:8080/api/admin/dictionary`.
 - `Включено / Выключено` — глобальное состояние плагина. При выключении UPORTAL не публикует redirect/pixel и не вставляет ссылки из popup.

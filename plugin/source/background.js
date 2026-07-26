@@ -1,7 +1,6 @@
 const DEFAULTS = {
   enabled: true,
   apiBase: 'http://localhost:8080',
-  pixelBaseUrl: '',
   userToken: '',
   dictionaryUrl: '',
   defaultMailFrom: '',
@@ -382,12 +381,7 @@ async function publishPixel(details, publicationId) {
   const token = pixelToken(settings.pixelTokenPrefix)
   const common = await buildCommonPayload(details, publicationId, token, 'pixel')
   const data = await apiPost('/api/admin/publish/pixel', common)
-  const shortUrl = await extractShortUrl(data, settings.apiBase)
-  const pixelBaseUrl = String(settings.pixelBaseUrl || '').replace(/\/+$/g, '')
-  const apiBase = String(settings.apiBase || '').replace(/\/+$/g, '')
-  return pixelBaseUrl && pixelBaseUrl !== apiBase
-    ? normalizeShortBaseUrl(shortUrl, pixelBaseUrl)
-    : shortUrl
+  return extractShortUrl(data, settings.apiBase)
 }
 
 function buildPixelImg(url) {

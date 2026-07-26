@@ -6,7 +6,7 @@ body {
   background: #fff;
 }
 
-header, footer, .send-mode {
+header, footer {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -15,10 +15,30 @@ header, footer, .send-mode {
   border-bottom: 1px solid #ddd;
 }
 
+header {
+  display: block;
+}
+
+.header-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.header-main {
+  justify-content: space-between;
+}
+
+.utility-row {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  margin-top: 8px;
+}
+
 .brand {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   min-width: 0;
 }
 
@@ -28,34 +48,17 @@ header, footer, .send-mode {
   text-decoration: none;
 }
 
-.logo {
+.brand-logo {
   display: block;
-  width: 54px;
-  height: 54px;
+  width: 132px;
+  max-width: 132px;
+  height: auto;
   object-fit: contain;
 }
 
 .version-badge {
   color: #667085;
   font-size: 11px;
-  font-weight: 600;
-}
-
-footer {
-  border-top: 1px solid #ddd;
-  border-bottom: 0;
-}
-
-.send-mode {
-  justify-content: space-between;
-  padding-top: 8px;
-  padding-bottom: 8px;
-  background: #fbfbfb;
-}
-
-.state-text {
-  color: #536171;
-  font-size: 12px;
   font-weight: 600;
 }
 
@@ -68,10 +71,9 @@ footer {
   padding: 4px 8px;
 }
 
-.top-controls {
-  display: flex;
-  align-items: center;
-  gap: 6px;
+footer {
+  border-top: 1px solid #ddd;
+  border-bottom: 0;
 }
 
 .enabled-switch {
@@ -104,7 +106,7 @@ footer {
 }
 
 #tagFilter {
-  width: 180px;
+  width: 100%;
   padding: 6px 8px;
   border: 1px solid #ccc;
   border-radius: 6px;

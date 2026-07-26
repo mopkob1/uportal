@@ -4,9 +4,7 @@ const tagFilter = document.getElementById('tagFilter')
 const insertSelected = document.getElementById('insertSelected')
 const copyClientUid = document.getElementById('copyClientUid')
 const versionBadge = document.getElementById('versionBadge')
-const popupLogo = document.getElementById('popupLogo')
 const popupLogoLink = document.getElementById('popupLogoLink')
-const pluginStateText = document.getElementById('pluginStateText')
 const switchOff = document.getElementById('switchOff')
 const switchOn = document.getElementById('switchOn')
 
@@ -58,9 +56,6 @@ async function savePluginEnabled(enabled) {
 
 function updateUiState() {
   document.body.classList.toggle('is-disabled', !pluginEnabled)
-  popupLogo.src = pluginEnabled
-    ? '../icons/uportal-color-96.png'
-    : '../icons/uportal-gray-96.png'
   switchOn.classList.toggle('is-active', pluginEnabled)
   switchOff.classList.toggle('is-active', !pluginEnabled)
   switchOn.setAttribute('aria-pressed', String(pluginEnabled))
@@ -68,7 +63,6 @@ function updateUiState() {
   tagFilter.disabled = !pluginEnabled
   refresh.disabled = !pluginEnabled
   insertSelected.disabled = !pluginEnabled
-  pluginStateText.textContent = pluginEnabled ? captions.stateOn : captions.stateOff
 }
 
 function domainFromUrl(value) {

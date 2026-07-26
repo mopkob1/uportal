@@ -30,8 +30,6 @@ Stored in `browser.storage.local`:
 - `enabled`, default `true`. Controls popup availability, send processing and
   compose action icon color.
 - `apiBase`, default `http://localhost:8080`.
-- `pixelBaseUrl`, optional override for pixel short-link host. When unset, the
-  extension uses the `short_url` returned by the API.
 - `userToken`.
 - `dictionaryUrl`, default `http://localhost:8080/api/admin/dictionary`.
 - `defaultMailFrom`, defaults to `no-reply@<api-base second-level domain>`.

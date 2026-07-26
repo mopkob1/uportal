@@ -1,6 +1,5 @@
 const ids = [
   'apiBase',
-  'pixelBaseUrl',
   'userToken',
   'clientUid',
   'dictionaryUrl',
@@ -150,7 +149,6 @@ function applyCaptions() {
   setText('apiBaseLabel', captions.apiBase)
   setText('userTokenLabel', captions.userToken)
   setText('clientUidLabel', captions.clientUid)
-  setText('pixelBaseUrlLabel', captions.pixelBaseUrl)
   setText('dictionaryUrlLabel', captions.dictionaryUrl)
   setText('defaultMailFromLabel', captions.defaultMailFrom)
   setText('pixelTokenPrefixLabel', captions.pixelTokenPrefix)
@@ -160,7 +158,6 @@ function applyCaptions() {
   document.getElementById('copyClientUid').title = captions.copyClientUidTitle
   setPlaceholder('apiBase', captions.apiBasePlaceholder)
   setPlaceholder('userToken', captions.userTokenPlaceholder)
-  setPlaceholder('pixelBaseUrl', captions.pixelBaseUrlPlaceholder)
   setPlaceholder('dictionaryUrl', captions.dictionaryUrlPlaceholder)
   setPlaceholder('defaultMailFrom', captions.defaultMailFromPlaceholder)
   setPlaceholder('pixelTokenPrefix', captions.pixelTokenPrefixPlaceholder)

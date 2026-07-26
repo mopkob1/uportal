@@ -37,8 +37,9 @@ h1 {
 
 .logo {
   display: block;
-  width: 64px;
-  height: 64px;
+  width: 220px;
+  max-width: 34vw;
+  height: auto;
   object-fit: contain;
 }
 
