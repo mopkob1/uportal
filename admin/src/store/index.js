@@ -30,6 +30,12 @@ import {
   logoutSiteSession,
   siteSessionProbeCandidates
 } from '../api/siteSessionApi'
+import {
+  DEFAULT_IDLE_TIMEOUT_MINUTES,
+  extractIdleTimeoutMinutes,
+  publishIdleLogout,
+  recordIdleActivity
+} from '../services/idleLogout'
 
 const TOKEN_KEY = 'uportal_token'
 const ADMIN_TOKEN_KEY = 'uportal_admin_token'
@@ -61,7 +67,10 @@ export default createStore({
     authMode: 'token',
     siteBackendAvailable: false,
     siteSession: null,
+    userProfile: {},
+    idleTimeoutMinutes: DEFAULT_IDLE_TIMEOUT_MINUTES,
     token: '',
+    authRevision: 0,
     clientUid: getOrCreateClientUid(),
     authorized: false,
     draftScopeKey: '',
@@ -97,10 +106,14 @@ export default createStore({
       state.authMode = 'token'
       state.siteBackendAvailable = false
       state.siteSession = null
+      state.userProfile = {}
+      state.idleTimeoutMinutes = DEFAULT_IDLE_TIMEOUT_MINUTES
       state.token = payload.token || ''
+      state.authRevision += 1
       state.authorized = !!state.token
       state.draftScopeKey = getDraftScopeKey(state.token)
       state.drafts = loadStoredDrafts(state.token)
+      resetTokensState(state)
 
       localStorage.setItem(SERVER_URL_KEY, state.serverUrl)
       localStorage.setItem(AUTH_HEADER_KEY, state.authHeader)
@@ -112,22 +125,32 @@ export default createStore({
       state.authorized = false
       state.authMode = state.siteBackendAvailable ? 'site-session' : 'token'
       state.siteSession = null
+      state.userProfile = {}
+      state.idleTimeoutMinutes = DEFAULT_IDLE_TIMEOUT_MINUTES
+      state.authRevision += 1
       state.draftScopeKey = ''
       state.drafts = []
+      resetTokensState(state)
       clearPersistedSecret(TOKEN_KEY)
     },
     setAdminToken(state, token) {
       state.adminToken = token
+      state.authRevision += 1
+      resetTokensState(state)
       clearPersistedSecret(ADMIN_TOKEN_KEY)
     },
 
     setToken(state, token) {
       state.authMode = 'token'
       state.siteSession = null
+      state.userProfile = {}
+      state.idleTimeoutMinutes = DEFAULT_IDLE_TIMEOUT_MINUTES
       state.token = token
+      state.authRevision += 1
       state.authorized = !!state.token
       state.draftScopeKey = getDraftScopeKey(state.token)
       state.drafts = loadStoredDrafts(state.token)
+      resetTokensState(state)
       clearPersistedSecret(TOKEN_KEY)
     },
 
@@ -149,10 +172,14 @@ export default createStore({
       state.authMode = 'site-session'
       state.siteBackendAvailable = true
       state.siteSession = session
+      state.userProfile = normalizeProfile(session?.profile)
+      state.idleTimeoutMinutes = extractIdleTimeoutMinutes(state.userProfile)
       state.token = ''
+      state.authRevision += 1
       state.authorized = !!session?.authenticated
       state.draftScopeKey = getDraftScopeKey(getSiteSessionDraftKey(session))
       state.drafts = loadStoredDrafts(getSiteSessionDraftKey(session))
+      resetTokensState(state)
 
       localStorage.setItem(SERVER_URL_KEY, state.serverUrl)
       localStorage.setItem(AUTH_HEADER_KEY, state.authHeader)
@@ -273,6 +300,11 @@ export default createStore({
         total: payload.total || 0,
         has_next: !!payload.has_next
       }
+    },
+
+    setUserProfile(state, profile) {
+      state.userProfile = normalizeProfile(profile)
+      state.idleTimeoutMinutes = extractIdleTimeoutMinutes(state.userProfile)
     }
   },
 
@@ -311,14 +343,32 @@ export default createStore({
       const serverUrl = normalizeServerUrl(payload.serverUrl || state.serverUrl)
       const session = await loginSiteSession(serverUrl, payload.token || '')
       commit('setSiteSessionAuth', { serverUrl, session })
+      recordIdleActivity()
       return session
     },
 
-    async logoutAuth({ commit, state }) {
+    async logoutAuth({ commit, state }, options = {}) {
       if (state.siteBackendAvailable) {
         await logoutSiteSession(state.serverUrl)
       }
       commit('logout')
+      if (options.broadcast !== false) {
+        publishIdleLogout('logout')
+      }
+    },
+
+    async loadCurrentUserProfile({ commit, state }) {
+      if (!state.authorized || state.siteBackendAvailable || !state.token) {
+        commit('setUserProfile', {})
+        return {}
+      }
+
+      const data = await tokenSelfGet()
+      const item = extractPaged(data, { page: 1, limit: 1 }).items[0] || {}
+      const profile = item.profile || item.payload?.profile || {}
+      commit('setUserProfile', profile)
+      recordIdleActivity()
+      return profile
     },
 
     async loadLinks({ commit }, filters = {}) {
@@ -466,6 +516,7 @@ export default createStore({
       return await tokenRevoke(token, state.adminToken)
     },
     async loadTokens({ state, commit }, params = {}) {
+      const authRevision = state.authRevision
       const data = state.adminToken
           ? await tokensList(
               params,
@@ -473,6 +524,13 @@ export default createStore({
               state.adminToken
           )
           : await tokenSelfGet()
+
+      if (authRevision !== state.authRevision) {
+        return {
+          items: state.tokens,
+          ...state.tokensPager
+        }
+      }
 
       const paged = extractPaged(data, {
         ...params,
@@ -738,6 +796,20 @@ function getSiteSessionDraftKey(session) {
     session.account?.email || '',
     session.visitorId || ''
   ].filter(Boolean).join(':')
+}
+
+function normalizeProfile(profile) {
+  return profile && typeof profile === 'object' ? profile : {}
+}
+
+function resetTokensState(state) {
+  state.tokens = []
+  state.tokensPager = {
+    page: 1,
+    limit: 10,
+    total: 0,
+    has_next: false
+  }
 }
 
 function loadLegacyDrafts() {

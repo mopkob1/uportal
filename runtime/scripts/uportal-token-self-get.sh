@@ -33,6 +33,7 @@ jq -cn \
               scope: ($p.scope // []),
               status: ($p.status // "active"),
               tags: ($p.tags // []),
+              profile: ($p.profile // {}),
               created_at: ($p.created_at // $file_created_at),
               known_clients: ($p.known_clients // {}),
               active_clients: ($p.active_clients // {})

@@ -413,6 +413,7 @@ export async function tokenUpsert(item, adminHeader, adminToken) {
     scope: item.scope || [],
     status: item.status || 'active',
     tags: item.tags || [],
+    profile: item.profile || {},
     active_clients: {
       web: item.active_clients?.web || '',
       plugin: item.active_clients?.plugin || ''
@@ -437,6 +438,7 @@ export async function tokenSelfUpsert(item) {
   const payload = {
     user: item.user || '',
     tags: item.tags || [],
+    profile: item.profile || {},
     active_clients: {
       web: item.active_clients?.web || '',
       plugin: item.active_clients?.plugin || ''

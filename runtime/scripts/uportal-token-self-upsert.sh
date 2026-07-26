@@ -60,6 +60,22 @@ jq \
         {web: "", plugin: ""}
       end
     )
+  | .profile = (
+      ((.profile // {}) | if type == "object" then . else {} end) as $existing_profile
+      | (($patch.profile // {}) | if type == "object" then . else {} end) as $patch_profile
+      | ($existing_profile + (
+          if ($patch_profile | has("idle_timeout_minutes")) then
+            {
+              idle_timeout_minutes: (
+                ($patch_profile.idle_timeout_minutes | tonumber? // 15)
+                | if . < 1 then 15 else floor end
+              )
+            }
+          else
+            {}
+          end
+        ))
+    )
 ' "$FILE" > "$TMP"
 
 mv "$TMP" "$FILE"

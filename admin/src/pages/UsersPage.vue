@@ -88,6 +88,7 @@
     <UserTokenModal
         v-model:show="editorVisible"
         :item="selectedItem"
+        :saving="editorSaving"
         @save="saveItem"
     />
   </n-space>
@@ -117,6 +118,7 @@ const query = ref('')
 
 const loading = ref(false)
 const editorVisible = ref(false)
+const editorSaving = ref(false)
 const selectedItem = ref(null)
 const MIN_PAGE_SIZE = 10
 
@@ -308,6 +310,7 @@ function openEdit(row) {
     scope: normalizeArray(row.scope || row.payload?.scope),
     status: row.status || row.payload?.status || 'active',
     tags: normalizeArray(row.tags || row.payload?.tags),
+    profile: normalizeProfile(row.profile || row.payload?.profile),
     active_clients: normalizeActiveClients(row.active_clients || row.payload?.active_clients)
   }
 
@@ -315,6 +318,8 @@ function openEdit(row) {
 }
 
 async function saveItem(item) {
+  if (editorSaving.value) return
+  editorSaving.value = true
   try {
     await store.dispatch('saveTokenItem', item)
     message.success(item.token ? captions.tokenSaved : captions.tokenCreated)
@@ -325,6 +330,8 @@ async function saveItem(item) {
     })
   } catch {
     message.error(captions.tokenSaveError)
+  } finally {
+    editorSaving.value = false
   }
 }
 
@@ -487,6 +494,10 @@ function normalizeActiveClients(value) {
     web: normalizeArray(source.web),
     plugin: normalizeArray(source.plugin)
   }
+}
+
+function normalizeProfile(value) {
+  return value && typeof value === 'object' ? value : {}
 }
 
 function canUseMultipleClients(row) {

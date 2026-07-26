@@ -1,33 +1,43 @@
 <template>
-  <n-modal :show="show" @update:show="emit('update:show', $event)">
+  <n-modal :show="show" :mask-closable="!saving" @update:show="emit('update:show', $event)">
     <n-card style="width: 680px" :title="title">
       <n-form label-placement="top">
         <n-form-item :label="captions.tokenLabel">
           <n-input
               v-model:value="form.token"
-              :disabled="isEdit"
+              :disabled="isEdit || saving"
               :placeholder="captions.tokenPlaceholder"
           />
         </n-form-item>
 
         <n-form-item :label="captions.userLabel">
-          <n-input v-model:value="form.user" :placeholder="captions.userPlaceholder" />
+          <n-input v-model:value="form.user" :disabled="saving" :placeholder="captions.userPlaceholder" />
         </n-form-item>
 
         <n-form-item :label="captions.statusLabel">
-          <n-select v-model:value="form.status" :options="statusOptions" />
+          <n-select v-model:value="form.status" :disabled="saving" :options="statusOptions" />
         </n-form-item>
 
         <n-form-item :label="captions.tagsLabel">
-          <n-dynamic-tags v-model:value="form.tags" />
+          <n-dynamic-tags v-model:value="form.tags" :disabled="saving" />
+        </n-form-item>
+
+        <n-form-item :label="captions.idleTimeoutLabel">
+          <n-input-number
+              v-model:value="form.profile.idle_timeout_minutes"
+              :min="1"
+              :step="1"
+              :disabled="saving"
+              style="width: 180px"
+          />
         </n-form-item>
 
         <n-space justify="end">
-          <n-button @click="emit('update:show', false)">
+          <n-button :disabled="saving" @click="emit('update:show', false)">
             {{ captions.cancel }}
           </n-button>
 
-          <n-button type="primary" @click="save">
+          <n-button type="primary" :loading="saving" :disabled="saving" @click="save">
             {{ captions.save }}
           </n-button>
         </n-space>
@@ -45,6 +55,10 @@ const props = defineProps({
   item: {
     type: Object,
     default: null
+  },
+  saving: {
+    type: Boolean,
+    default: false
   }
 })
 
@@ -67,10 +81,10 @@ watch(
     (value) => {
       if (!value) return
 
-      Object.assign(form, props.item ? {
+      Object.assign(form, props.item ? normalizeForm({
         ...emptyForm(),
         ...props.item
-      } : emptyForm())
+      }) : emptyForm())
     }
 )
 
@@ -81,6 +95,9 @@ function emptyForm() {
     scope: ['upload', 'activity', 'dictionary'],
     status: 'active',
     tags: [],
+    profile: {
+      idle_timeout_minutes: 15
+    },
     active_clients: {
       web: '',
       plugin: ''
@@ -95,10 +112,30 @@ function save() {
     scope: form.scope,
     status: form.status,
     tags: form.tags,
+    profile: {
+      ...(form.profile || {}),
+      idle_timeout_minutes: normalizeIdleTimeoutMinutes(form.profile?.idle_timeout_minutes)
+    },
     active_clients: {
       web: form.active_clients?.web || '',
       plugin: form.active_clients?.plugin || ''
     }
   })
+}
+
+function normalizeForm(value) {
+  return {
+    ...value,
+    profile: {
+      ...(value.profile || {}),
+      idle_timeout_minutes: normalizeIdleTimeoutMinutes(value.profile?.idle_timeout_minutes)
+    }
+  }
+}
+
+function normalizeIdleTimeoutMinutes(value) {
+  const number = Number(value)
+  if (!Number.isFinite(number) || number <= 0) return 15
+  return Math.max(1, Math.floor(number))
 }
 </script>

@@ -106,14 +106,6 @@ watch(
 )
 
 async function save() {
-  const previousAuth = {
-    serverUrl: normalizeServerUrl(store.state.serverUrl),
-    authHeader: store.state.authHeader || 'X-User-Token',
-    token: store.state.token || '',
-    authMode: store.state.authMode || 'token',
-    siteSessionKey: getSiteSessionKey(store.state.siteSession)
-  }
-
   saving.value = true
 
   try {
@@ -128,6 +120,7 @@ async function save() {
         authHeader: form.authHeader,
         token: form.token
       })
+      await store.dispatch('loadCurrentUserProfile')
     }
 
     store.commit(
@@ -140,11 +133,7 @@ async function save() {
     message.success(caps.saved)
     emit('saved', {
       changed: true,
-      authChanged: previousAuth.serverUrl !== store.state.serverUrl ||
-          previousAuth.authHeader !== store.state.authHeader ||
-          previousAuth.token !== store.state.token ||
-          previousAuth.authMode !== store.state.authMode ||
-          previousAuth.siteSessionKey !== getSiteSessionKey(store.state.siteSession)
+      authChanged: true
     })
     emit('update:show', false)
   } catch (error) {
@@ -170,12 +159,4 @@ async function logout() {
   }
 }
 
-function getSiteSessionKey(session) {
-  if (!session?.authenticated) return ''
-  return [
-    session.account?.id || '',
-    session.account?.email || '',
-    session.visitorId || ''
-  ].filter(Boolean).join(':')
-}
 </script>

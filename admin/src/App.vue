@@ -76,7 +76,7 @@
 <script setup>
 import { Lock, LockOpen } from 'lucide-vue-next'
 import { dateRuRU, ruRU } from 'naive-ui'
-import {computed, onBeforeUnmount, onMounted, ref} from 'vue'
+import {computed, onBeforeUnmount, onMounted, ref, watch} from 'vue'
 import {useStore} from 'vuex'
 
 import AuthModal from './components/AuthModal.vue'
@@ -87,6 +87,7 @@ import UsersPage from './pages/UsersPage.vue'
 import { getCaptionLanguage, getCaptions } from './captions'
 import uportalLogo from './assets/uportal-logo.svg'
 import { DEFAULT_SERVER_URL } from './config/server'
+import { startIdleLogout } from './services/idleLogout'
 const store = useStore()
 const caps = getCaptions('app')
 const captionLanguage = getCaptionLanguage()
@@ -120,10 +121,12 @@ const pageKeys = ref({
 
 const token = computed(() => store.state.token)
 const authorized = computed(() => store.state.authorized)
+const idleTimeoutMinutes = computed(() => store.state.idleTimeoutMinutes)
 const showAuthButton = computed(() => {
   if (!store.state.siteBackendAvailable) return true
   return hasAdmin14Tag(store.state.siteSession)
 })
+let stopIdleLogout = null
 
 onMounted(async () => {
   await store.dispatch('bootstrapAuth')
@@ -132,8 +135,25 @@ onMounted(async () => {
 })
 
 onBeforeUnmount(() => {
+  stopIdleLogout?.()
   window.removeEventListener('popstate', handlePopState)
 })
+
+watch(
+    [authorized, idleTimeoutMinutes],
+    ([isAuthorized, timeoutMinutes]) => {
+      stopIdleLogout?.()
+      stopIdleLogout = null
+      if (!isAuthorized) return
+
+      stopIdleLogout = startIdleLogout({
+        timeoutMinutes,
+        onTimeout: () => store.dispatch('logoutAuth', { broadcast: false }),
+        onRemoteLogout: () => store.dispatch('logoutAuth', { broadcast: false })
+      })
+    },
+    { immediate: true }
+)
 
 function resolvePageFromLocation() {
   const path = window.location.pathname.replace(/\/+$/, '') || '/'
@@ -161,6 +181,14 @@ function navigateTo(item) {
 
 function refreshCurrentPage(payload) {
   if (!payload?.changed || !authorized.value) return
+
+  if (payload.authChanged) {
+    pageKeys.value = Object.fromEntries(
+        Object.entries(pageKeys.value).map(([key, value]) => [key, value + 1])
+    )
+    return
+  }
+
   pageKeys.value = {
     ...pageKeys.value,
     [page.value]: pageKeys.value[page.value] + 1
@@ -168,7 +196,10 @@ function refreshCurrentPage(payload) {
 }
 
 function hasAdmin14Tag(session) {
-  const tags = normalizeArray(session?.tags || session?.account?.tags)
+  const tags = [
+    ...normalizeArray(session?.tags),
+    ...normalizeArray(session?.account?.tags)
+  ]
   return tags.some(tag => tag === 'Admin14')
 }
 

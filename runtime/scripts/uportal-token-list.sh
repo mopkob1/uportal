@@ -90,6 +90,7 @@ find "$ROOT" -maxdepth 1 -type f -name '*.json' | sort | while read -r file; do
       site: normalized_site,
       status: (.status // "active"),
       tags: (.tags // []),
+      profile: (.profile // {}),
       created_at: (.created_at // $file_created_at),
       known_clients: (.known_clients // {}),
       active_clients: (.active_clients // {})

@@ -799,6 +799,9 @@ Decoded payload example:
   "scope": ["admin", "upload", "activity", "dictionary"],
   "status": "active",
   "tags": [],
+  "profile": {
+    "idle_timeout_minutes": 15
+  },
   "active_clients": {
     "web": "",
     "plugin": ""
@@ -893,6 +896,9 @@ Decoded payload may update only:
 {
   "user": "demo",
   "tags": ["team"],
+  "profile": {
+    "idle_timeout_minutes": 15
+  },
   "active_clients": {
     "web": "web-1",
     "plugin": "plugin-1"
@@ -900,8 +906,9 @@ Decoded payload may update only:
 }
 ```
 
-Status, scope, `user_id`, rotation fields and `known_clients` are preserved
-server-side.
+Only `profile.idle_timeout_minutes` is accepted from `profile` in self-edit
+payloads. Status, scope, `user_id`, rotation fields and `known_clients` are
+preserved server-side.
 
 ## Tracking Endpoint
 
