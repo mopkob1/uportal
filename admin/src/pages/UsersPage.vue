@@ -206,7 +206,7 @@ const columns = [
   {
     title: columnLabels.actions,
     key: 'actions',
-    width: 130,
+    width: 180,
     render(row) {
       const buttons = [
           iconButton({
@@ -215,7 +215,8 @@ const columns = [
             tone: 'edit',
             disabled: !tokenCanEdit(row),
             onClick: () => openEdit(row)
-          })
+          }),
+          tariffTag(row)
       ]
 
       if (hasAdminToken.value) {
@@ -728,6 +729,43 @@ function tokenStatusCanToggle(status) {
 function tokenCanEdit(row) {
   const status = row.status || row.payload?.status || 'active'
   return status !== 'revoked'
+}
+
+function tariffTag(row) {
+  const plan = normalizeTariffPlan(row.site?.plan || row.payload?.site?.plan || row.plan || row.payload?.plan)
+
+  return h(NTag, {
+    size: 'small',
+    round: true,
+    bordered: false,
+    color: tariffTagColor(plan),
+    title: plan,
+    style: {
+      height: '18px',
+      padding: '0 6px',
+      fontSize: '10px',
+      lineHeight: '18px',
+      fontWeight: '700',
+      letterSpacing: '0'
+    }
+  }, {
+    default: () => plan
+  })
+}
+
+function normalizeTariffPlan(value) {
+  const plan = String(value || 'free').trim().toLowerCase()
+  if (['free', 'pro', 'personal', 'team'].includes(plan)) return plan.toUpperCase()
+  return plan ? plan.toUpperCase() : 'FREE'
+}
+
+function tariffTagColor(plan) {
+  return {
+    FREE: { color: '#e5e7eb', textColor: '#4b5563' },
+    PRO: { color: '#dbeafe', textColor: '#1d4ed8' },
+    PERSONAL: { color: '#dcfce7', textColor: '#15803d' },
+    TEAM: { color: '#fee2e2', textColor: '#b91c1c' }
+  }[plan] || { color: '#f3f4f6', textColor: '#374151' }
 }
 
 function formatScope(scope) {
