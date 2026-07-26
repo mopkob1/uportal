@@ -34,6 +34,7 @@
             </nav>
 
             <n-button
+                v-if="showAuthButton"
                 circle
                 quaternary
                 @click="authVisible = true"
@@ -119,6 +120,10 @@ const pageKeys = ref({
 
 const token = computed(() => store.state.token)
 const authorized = computed(() => store.state.authorized)
+const showAuthButton = computed(() => {
+  if (!store.state.siteBackendAvailable) return true
+  return hasAdmin14Tag(store.state.siteSession)
+})
 
 onMounted(async () => {
   await store.dispatch('bootstrapAuth')
@@ -160,6 +165,23 @@ function refreshCurrentPage(payload) {
     ...pageKeys.value,
     [page.value]: pageKeys.value[page.value] + 1
   }
+}
+
+function hasAdmin14Tag(session) {
+  const tags = normalizeArray(session?.tags || session?.account?.tags)
+  return tags.some(tag => tag === 'Admin14')
+}
+
+function normalizeArray(value) {
+  if (Array.isArray(value)) {
+    return value.map(item => String(item || '').trim()).filter(Boolean)
+  }
+
+  if (typeof value === 'string') {
+    return value.split(',').map(item => item.trim()).filter(Boolean)
+  }
+
+  return []
 }
 </script>
 
