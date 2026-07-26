@@ -61,7 +61,7 @@
               <PublicationsPage v-if="page === 'publications'" :key="pageKeys.publications" />
               <StatisticsPage v-if="page === 'activity'" :key="pageKeys.activity" />
               <DictionaryPage v-if="page === 'dictionary'" :key="pageKeys.dictionary" />
-              <UsersPage v-if="page === 'users'" :key="pageKeys.users" />
+              <UsersPage v-if="page === 'users'" :key="pageKeys.users" @refresh-tab="refreshCurrentPage" />
             </template>
           </n-layout-content>
 

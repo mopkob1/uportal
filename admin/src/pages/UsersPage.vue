@@ -107,6 +107,7 @@ const userCaps = getCaptions('users')
 const columnLabels = userCaps.columns
 const captions = userCaps.texts
 const tooltips = userCaps.actions
+const emit = defineEmits(['refresh-tab'])
 
 const store = useStore()
 const message = useMessage()
@@ -324,9 +325,9 @@ async function saveItem(item) {
     await store.dispatch('saveTokenItem', item)
     message.success(item.token ? captions.tokenSaved : captions.tokenCreated)
     editorVisible.value = false
-    await load({
-      page: item.token ? pager.value.page || 1 : 1,
-      limit: normalizePageSize(pager.value.limit)
+    emit('refresh-tab', {
+      changed: true,
+      authChanged: false
     })
   } catch {
     message.error(captions.tokenSaveError)
