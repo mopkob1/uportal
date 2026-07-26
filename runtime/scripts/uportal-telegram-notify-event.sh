@@ -82,7 +82,18 @@ if [ -z "$IP" ] && [ -n "$XFF" ]; then
   IP="$(printf '%s' "$XFF" | cut -d',' -f1 | xargs)"
 fi
 
-actor="$(jq -r '(.actions // [] | map(select(.actor != null and .actor != "")) | last | .actor) // .created_by // .owner // ""' "$META_FILE" 2>/dev/null || echo "")"
+actor="$(jq -r '
+  (.created_by // .owner // "") as $explicit_owner
+  | (
+      .actions
+      // []
+      | map(.actor // "")
+      | map(select(. != "" and . != "system"))
+      | last
+    )
+    // $explicit_owner
+    // ""
+' "$META_FILE" 2>/dev/null || echo "")"
 owner_file=""
 if [ -n "$actor" ] && [ -d "$TOKEN_ROOT" ]; then
   while IFS= read -r -d '' candidate; do

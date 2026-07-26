@@ -141,7 +141,7 @@ const freshUntilTs = ref(null)
 watch(
     () => draft.fresh_until,
     (value) => {
-      freshUntilTs.value = value && value !== -1
+      freshUntilTs.value = value && value !== -1 && value !== '-1'
           ? new Date(value).getTime()
           : null
     },

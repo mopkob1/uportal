@@ -15,7 +15,7 @@ uportal_load_config() {
 }
 
 uportal_public_base_url() {
-  local value="${UPORTAL_PUBLIC_BASE_URL:-${UPORTAL_BASE_URL:-}}"
+  local value="${UPORTAL_PUBLIC_BASE_URL:-${UPORTAL_BASE_URL:-${UPORTAL_SITE_PUBLIC_BASE_URL:-}}}"
   value="${value%/}"
   printf '%s' "${value:-http://localhost:8080}"
 }

@@ -72,8 +72,9 @@ export async function linksList(filters = {}) {
 }
 
 export async function publishDraftRequest(draft) {
-  await uploadDraftAssets(draft)
   const payload = buildPublishPayload(draft)
+  validatePublishPayload(payload)
+  await uploadDraftAssets(draft)
   const { data } = await api.post(`/api/admin/publish/${payload.type}`, payload)
   assertSuccessResponse(data)
   return data
@@ -462,15 +463,17 @@ export async function tokenDelete(token, adminHeader, adminToken) {
 }
 
 function buildPublishPayload(draft) {
+  const type = draft.type || 'redirect'
+
   return {
-    type: draft.type || 'redirect',
+    type,
     status: 'active',
     publication_id: draft.publication_id || '',
     token: draft.token || '',
     short: draft.short || '',
     subj: draft.subj || '',
     mails: Array.isArray(draft.mails) ? draft.mails : normalizeMails(draft.mails),
-    link: draft.link || '',
+    link: normalizePublishLink(draft, type),
     pre: draft.pre || '',
     post: draft.post || '',
     target_url: draft.form?.target_url || draft.target_url || '',
@@ -492,6 +495,27 @@ function buildPublishPayload(draft) {
   }
 }
 
+function normalizePublishLink(draft, type) {
+  const direct = draft.link || draft.form?.link || draft.form?.anchor || ''
+  if (direct) return direct
+  if (type === 'redirect') return draft.form?.target_url || draft.target_url || ''
+  return ''
+}
+
+function validatePublishPayload(payload) {
+  const required = ['publication_id', 'token', 'subj', 'link']
+  if (payload.type === 'redirect') required.push('target_url')
+
+  const missing = required.find(field => {
+    const value = payload[field]
+    return value === undefined || value === null || String(value).trim() === ''
+  })
+
+  if (missing) {
+    throw new Error(`missing required field: ${missing}`)
+  }
+}
+
 function normalizeNonNegativeInteger(value) {
   const numeric = Number(value)
   if (!Number.isFinite(numeric) || numeric < 0) return 0
@@ -499,8 +523,12 @@ function normalizeNonNegativeInteger(value) {
 }
 
 function normalizeLimit(value) {
-  if (value === '' || value == null) return '-1'
-  return String(value)
+  if (value === '' || value == null || value === -1 || value === '-1') return '-1'
+
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return '-1'
+
+  return date.toISOString()
 }
 
 function normalizeClicksLimit(value) {

@@ -251,17 +251,17 @@ export default createStore({
           .filter(item => item.draft_id !== updatedDraft.draft_id)
 
       state.drafts.unshift(updatedDraft)
-      persistDrafts(state.drafts, state.token)
+      persistDrafts(state.drafts, state.draftScopeKey)
     },
 
     removeDraft(state, draftId) {
       state.drafts = state.drafts.filter(item => item.draft_id !== draftId)
-      persistDrafts(state.drafts, state.token)
+      persistDrafts(state.drafts, state.draftScopeKey)
     },
 
     publishDraftLocally(state, payload) {
       state.drafts = state.drafts.filter(item => item.draft_id !== payload.draftId)
-      persistDrafts(state.drafts, state.token)
+      persistDrafts(state.drafts, state.draftScopeKey)
 
       if (payload.link) {
         state.links = [
@@ -769,8 +769,8 @@ function loadStoredDrafts(token) {
   }
 }
 
-function persistDrafts(drafts, token) {
-  const key = getDraftsStorageKey(token)
+function persistDrafts(drafts, scopeKey) {
+  const key = getDraftsStorageKeyByScope(scopeKey)
   if (!key) return
 
   const serializableDrafts = drafts.map(serializeDraft)
@@ -779,6 +779,10 @@ function persistDrafts(drafts, token) {
 
 function getDraftsStorageKey(token) {
   const scopeKey = getDraftScopeKey(token)
+  return getDraftsStorageKeyByScope(scopeKey)
+}
+
+function getDraftsStorageKeyByScope(scopeKey) {
   if (!scopeKey) return ''
   return `${DRAFTS_KEY_PREFIX}${scopeKey}`
 }

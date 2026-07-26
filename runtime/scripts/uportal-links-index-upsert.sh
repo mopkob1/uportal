@@ -146,7 +146,9 @@ jq -c \
       status_history: (if (.status_history | type) == "array" then .status_history else [] end),
       short_id: (.short_id // .short // ""),
       short_url: (
-        if ((.short_id // .short // "") != "")
+        if ((.short_url // .shortlink // "") != "" and (((.short_url // .shortlink) | tostring) | startswith("http")))
+        then (.short_url // .shortlink)
+        elif ((.short_id // .short // "") != "")
         then ($base_url + "/s/" + (.short_id // .short))
         else ""
         end

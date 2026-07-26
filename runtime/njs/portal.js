@@ -97,6 +97,15 @@ function readBin(path) {
     try { return fs.readFileSync(path); } catch (e) { return null; }
 }
 
+function fileReadable(path) {
+    try {
+        fs.readFileSync(path);
+        return true;
+    } catch (e) {
+        return false;
+    }
+}
+
 function readJson(path) {
     var raw = readText(path);
     if (raw === null) return null;
@@ -394,10 +403,10 @@ function templatePath(r, name, meta) {
     var root = cfg(r, 'uportal_template_root', '/data/files/uportal/templates');
     var setName = templateSetName(meta);
     var selected = root + '/' + setName + '/' + name;
-    if (fs.existsSync(selected)) return selected;
+    if (fileReadable(selected)) return selected;
 
     var fallback = root + '/default/' + name;
-    if (fs.existsSync(fallback)) return fallback;
+    if (fileReadable(fallback)) return fallback;
 
     return root + '/' + name;
 }
