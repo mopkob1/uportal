@@ -20,6 +20,7 @@
     "title": "",
     "description": "",
     "page_ttl_sec": "1800",
+    "template_set": "default",
     "password_hint": "",
     "password_ttl_sec": "1800",
     "pre": "",
@@ -55,6 +56,7 @@
     "{sticky}",
     "{client_uid}",
     "{client_type}",
-    "{lang}"
+    "{lang}",
+    "{template_set}"
   ]
 }

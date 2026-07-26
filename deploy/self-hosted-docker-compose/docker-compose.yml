@@ -36,8 +36,11 @@ services:
     restart: unless-stopped
     depends_on:
       - uportal
-    entrypoint: ["/opt/uportal/runtime/scripts/uportal-service-worker.sh"]
+    entrypoint: ["/opt/uportal/runtime/service-workers/uportal-service-worker.sh"]
     environment:
       UPORTAL_ROOT: /data/files/uportal
+      UPORTAL_AUTO_HOLD_ENABLED: ${UPORTAL_AUTO_HOLD_ENABLED:-1}
+      UPORTAL_AUTO_HOLD_INTERVAL_SECONDS: ${UPORTAL_AUTO_HOLD_INTERVAL_SECONDS:-1800}
+      UPORTAL_AUTO_HOLD_HOOK_DIR: ${UPORTAL_AUTO_HOLD_HOOK_DIR:-/data/files/uportal/auto-hold-hooks}
     volumes:
       - ${UPORTAL_DATA_DIR:-./data/files}:/data/files

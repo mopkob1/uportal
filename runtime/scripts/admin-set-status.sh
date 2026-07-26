@@ -33,13 +33,14 @@ esac
 [ -f "$META_FILE" ] || json_error "meta not found: $META_FILE"
 load_actions "$META_FILE"
 
-tmp="$(mktemp)"
+src="user"
+if [ "$actor" = "system" ]; then
+  src="system"
+elif [ -z "$actor" ] || [ "$actor" = "notoken" ]; then
+  src="admin"
+fi
 
-jq --arg status "$status" '
-  .status = $status
-' "$META_FILE" > "$tmp"
-
-mv "$tmp" "$META_FILE"
+set_link_status_with_history "$META_FILE" "$status" "$src" "manual"
 
 short_id="$(jq -r '.short_id // .short // ""' "$META_FILE")"
 append_action "$META_FILE" "set_status" "$actor" "$short_id"

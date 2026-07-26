@@ -17,7 +17,8 @@
     "remaining_clicks": "-1",
     "fallback_url": "__UPORTAL_BASE_URL__/link-fallback",
     "sticky": "",
-    "lang": "en"
+    "lang": "en",
+    "template_set": "default"
   },
   "script": [
     "bash",
@@ -36,6 +37,7 @@
     "{sticky}",
     "{client_uid}",
     "{client_type}",
-    "{lang}"
+    "{lang}",
+    "{template_set}"
   ]
 }

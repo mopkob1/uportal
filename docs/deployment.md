@@ -43,6 +43,7 @@ runtime/nginx/snippets/*        -> /etc/nginx/snippets/
 runtime/njs/*                   -> /etc/nginx/njs/
 runtime/shhoook/*.json          -> /etc/shhoook/
 runtime/scripts/*               -> /usr/local/bin/
+runtime/service-workers/*       -> /usr/local/lib/uportal/service-workers/
 runtime/templates/*             -> /data/files/uportal/templates/
 runtime/system/shhoook.service  -> /etc/systemd/system/shhoook.service
 runtime/system/shhoook-wrapper  -> /usr/local/bin/shhoook-wrapper
@@ -184,6 +185,8 @@ sudo ln -sf /etc/nginx/sites-available/uportal.conf /etc/nginx/sites-enabled/upo
 sudo cp runtime/njs/* /etc/nginx/njs/
 sudo cp runtime/shhoook/*.json /etc/shhoook/
 sudo cp runtime/scripts/* /usr/local/bin/
+sudo mkdir -p /usr/local/lib/uportal/service-workers
+sudo cp runtime/service-workers/* /usr/local/lib/uportal/service-workers/
 sudo cp runtime/templates/* /data/files/uportal/templates/
 ```
 

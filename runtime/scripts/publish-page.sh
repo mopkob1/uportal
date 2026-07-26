@@ -54,6 +54,7 @@ sticky="${23:-}"
 client_uid="${24:-}"
 client_type="${25:-}"
 lang="${26:-en}"
+template_set="${27:-default}"
 
 
 BASE="/data/files/uportal"
@@ -151,6 +152,7 @@ case "${lang,,}" in
   auto|ru|en|es) ;;
   *) lang="en" ;;
 esac
+printf '%s' "$template_set" | grep -Eq '^[A-Za-z0-9._-]{1,64}$' || template_set="default"
 
 safe_entry_md="$(safe_file_seg "$entry_md")"
 [ -d "$INBOX_DIR" ] || json_error "inbox not found: $INBOX_DIR"
@@ -223,10 +225,12 @@ BASE_URL="$(uportal_public_base_url)"
 HTML="<a href=\"$BASE_URL/s/$short\">$link</a>"
 
 load_actions "$META_FILE"
+STATUS_HISTORY_JSON="$(jq -c 'if (.status_history | type) == "array" then .status_history else [] end' "$META_FILE" 2>/dev/null || printf '[]')"
 
 jq -n \
   --arg type "page" \
   --arg status "$status" \
+  --argjson status_history "$STATUS_HISTORY_JSON" \
   --arg publication_id "$publication_id" \
   --arg token "$token" \
   --arg short_id "$short" \
@@ -245,6 +249,7 @@ jq -n \
   --arg image "$safe_image" \
   --arg entry_md "$safe_entry_md" \
   --arg page_ttl_sec "$page_ttl_sec" \
+  --arg template_set "$template_set" \
   --arg password_hash "$password_hash" \
   --arg password_hint "$password_hint" \
   --arg password_ttl_sec "$password_ttl_sec" \
@@ -252,6 +257,7 @@ jq -n \
   {
     type: $type,
     status: $status,
+    status_history: $status_history,
 
     publication_id: $publication_id,
     token: $token,
@@ -275,7 +281,8 @@ jq -n \
     lang: $lang,
 
     entry_md: $entry_md,
-    page_ttl_sec: $page_ttl_sec
+    page_ttl_sec: $page_ttl_sec,
+    template_set: $template_set
   }
   +
   (
@@ -290,6 +297,8 @@ jq -n \
     end
   )
 ' > "$META_FILE"
+
+append_status_history "$META_FILE" "$status" "user" "published"
 
 append_action "$META_FILE" "page" "$actor" "$short"
 
@@ -333,11 +342,13 @@ jq -n \
   --arg image "$safe_image" \
   --arg entry_md "$safe_entry_md" \
   --arg page_ttl_sec "$page_ttl_sec" \
+  --arg template_set "$template_set" \
   --arg password_hash "$password_hash" \
   --arg password_hint "$password_hint" \
   --arg password_ttl_sec "$password_ttl_sec" \
   --arg lang "$lang" \
-  --arg html "$HTML" '
+  --arg html "$HTML" \
+  --slurpfile meta "$META_FILE" '
   {
     status: "success",
     message: [
@@ -345,6 +356,7 @@ jq -n \
         {
           type: $type,
           status: $status,
+          status_history: ($meta[0].status_history // []),
 
           publication_id: $publication_id,
           token: $token,
@@ -371,6 +383,7 @@ jq -n \
 
           entry_md: $entry_md,
           page_ttl_sec: $page_ttl_sec,
+          template_set: $template_set,
 
           html: $html
         }

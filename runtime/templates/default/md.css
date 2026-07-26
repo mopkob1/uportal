@@ -1,0 +1,96 @@
+/* markdown content normalization */
+.hidden {
+  display: none !important;
+}
+
+.md-content {
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.md-content img {
+  display: block;
+  max-width: min(100%, 900px);
+  max-height: 90vh;
+  width: auto;
+  height: auto;
+  margin: 1.5rem auto;
+  object-fit: contain;
+  border-radius: 12px;
+}
+
+.md-content video {
+  display: block;
+  max-width: min(100%, 900px);
+  max-height: 90vh;
+  width: auto;
+  height: auto;
+  margin: 1.5rem auto;
+  border-radius: 12px;
+}
+
+.md-content iframe {
+  display: block;
+  width: 100%;
+  max-width: 900px;
+  aspect-ratio: 16 / 9;
+  height: auto;
+  margin: 1.5rem auto;
+  border: 0;
+  border-radius: 12px;
+}
+
+/* FIGURE */
+
+.md-content figure {
+  margin: 1.5rem 0;
+  text-align: center;
+}
+
+.md-content figure img {
+  margin: 0 auto;
+}
+
+/* TABLES */
+
+.md-content table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1.5rem 0;
+}
+
+.md-content th,
+.md-content td {
+  border: 1px solid #e5e7eb;
+  padding: 8px 12px;
+}
+
+/* CODE */
+
+.md-content pre {
+  overflow-x: auto;
+  padding: 12px;
+  border-radius: 12px;
+  background: #111;
+  color: #eee;
+}
+
+.md-content code {
+  font-family: monospace;
+}
+
+/* HEADINGS */
+
+.md-content h1,
+.md-content h2,
+.md-content h3 {
+  margin-top: 2rem;
+  margin-bottom: 1rem;
+}
+
+/* PARAGRAPHS */
+
+.md-content p {
+  margin: 1rem 0;
+  line-height: 1.6;
+}

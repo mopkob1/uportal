@@ -177,10 +177,135 @@ append_action() {
 refresh_link_index() {
   local publication_id="$1"
   local token="$2"
+  local upserter=""
 
   if command -v uportal-links-index-upsert.sh >/dev/null 2>&1; then
-    uportal-links-index-upsert.sh upsert "$publication_id" "$token" >/dev/null || true
+    upserter="uportal-links-index-upsert.sh"
+  elif [ -x "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/uportal-links-index-upsert.sh" ]; then
+    upserter="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/uportal-links-index-upsert.sh"
   fi
+
+  if [ -n "$upserter" ]; then
+    "$upserter" upsert "$publication_id" "$token" >/dev/null || true
+  fi
+}
+
+append_status_history() {
+  local meta_file="$1"
+  local status="$2"
+  local src="${3:-system}"
+  local reason="${4:-}"
+  local now
+  local tmp
+
+  [ -f "$meta_file" ] || return 0
+  now="$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
+  tmp="$(mktemp)"
+
+  jq \
+    --arg status "$status" \
+    --arg src "$src" \
+    --arg reason "$reason" \
+    --arg date "$now" '
+    def clean_history:
+      if (.status_history | type) == "array" then .status_history else [] end;
+
+    .status = $status
+    | .status_history = (
+        clean_history as $history
+        | ($history | last) as $last
+        | if
+            ($last != null)
+            and (($last.status // "") == $status)
+            and (($last.src // "") == $src)
+            and (($last.reason // "") == $reason)
+          then
+            $history
+          else
+            $history + [
+              {
+                date: $date,
+                status: $status,
+                src: $src
+              }
+              + (if $reason != "" then {reason: $reason} else {} end)
+            ]
+          end
+      )
+  ' "$meta_file" > "$tmp"
+
+  mv "$tmp" "$meta_file"
+  chmod 644 "$meta_file"
+}
+
+set_link_status_with_history() {
+  local meta_file="$1"
+  local status="$2"
+  local src="${3:-system}"
+  local reason="${4:-}"
+  local now
+  local tmp
+
+  [ -f "$meta_file" ] || return 0
+  now="$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
+  tmp="$(mktemp)"
+
+  jq \
+    --arg status "$status" \
+    --arg src "$src" \
+    --arg reason "$reason" \
+    --arg date "$now" '
+    def clean_history:
+      if (.status_history | type) == "array" then .status_history else [] end;
+
+    (.status // "active") as $old_status
+    | clean_history as $history
+    | (
+        {
+          date: (
+            .published_at
+            // .created_at
+            // .created
+            // .date
+            // .ts
+            // .updated_at
+            // ((.actions // [] | map(.date // empty) | first) // $date)
+          ),
+          status: $old_status,
+          src: "system",
+          reason: "initial_state"
+        }
+      ) as $initial
+    | (
+        {
+          date: $date,
+          status: $status,
+          src: $src
+        }
+        + (if $reason != "" then {reason: $reason} else {} end)
+      ) as $entry
+    | .status = $status
+    | .status_history = (
+        if ($history | length) == 0 then
+          if $old_status == $status then [$entry] else [$initial, $entry] end
+        else
+          ($history | last) as $last
+          | if
+              ($last != null)
+              and (($last.status // "") == $status)
+              and (($last.src // "") == $src)
+              and (($last.reason // "") == $reason)
+            then
+              $history
+            else
+              $history + [$entry]
+            end
+        end
+      )
+  ' "$meta_file" > "$tmp"
+
+  mv "$tmp" "$meta_file"
+  chmod 644 "$meta_file"
 }
 
 uportal_normalize_json_array_arg() {

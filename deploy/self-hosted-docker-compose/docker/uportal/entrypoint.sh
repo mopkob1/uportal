@@ -69,7 +69,7 @@ require_runtime_dir() {
   local dir="$1"
   if [ ! -d "$dir" ]; then
     echo "missing required runtime directory: $dir" >&2
-    echo "check the deployment source tree; runtime/nginx, runtime/njs, runtime/shhoook and runtime/scripts must be included" >&2
+    echo "check the deployment source tree; runtime/nginx, runtime/njs, runtime/shhoook, runtime/scripts and runtime/service-workers must be included" >&2
     exit 1
   fi
 }
@@ -611,6 +611,7 @@ require_runtime_dir /opt/uportal/runtime/nginx/snippets
 require_runtime_dir /opt/uportal/runtime/njs
 require_runtime_dir /opt/uportal/runtime/shhoook
 require_runtime_dir /opt/uportal/runtime/scripts
+require_runtime_dir /opt/uportal/runtime/service-workers
 ensure_dir /etc/nginx/snippets /etc/nginx/njs /etc/nginx/sites-enabled /etc/shhoook
 cp -a /opt/uportal/runtime/nginx/snippets/. /etc/nginx/snippets/
 cp -a /opt/uportal/runtime/njs/. /etc/nginx/njs/

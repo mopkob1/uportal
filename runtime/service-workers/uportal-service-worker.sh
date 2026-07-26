@@ -11,8 +11,13 @@ TOKEN_DIR="${UPORTAL_TOKEN_ROOT:-$UPORTAL_ROOT/user-tokens}"
 META_DIR="${UPORTAL_META_DIR:-$UPORTAL_ROOT/meta}"
 STORAGE_DIR="${UPORTAL_STORAGE_DIR:-$UPORTAL_ROOT/storage}"
 POLL_SECONDS="${UPORTAL_SERVICE_WORKER_POLL_SECONDS:-60}"
+AUTO_HOLD_ENABLED="${UPORTAL_AUTO_HOLD_ENABLED:-1}"
+AUTO_HOLD_INTERVAL_SECONDS="${UPORTAL_AUTO_HOLD_INTERVAL_SECONDS:-1800}"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-NOTIFY_EVENT_SCRIPT="${UPORTAL_TELEGRAM_NOTIFY_EVENT_SCRIPT:-$SCRIPT_DIR/uportal-telegram-notify-event.sh}"
+RUNTIME_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
+NOTIFY_EVENT_SCRIPT="${UPORTAL_TELEGRAM_NOTIFY_EVENT_SCRIPT:-$RUNTIME_DIR/scripts/uportal-telegram-notify-event.sh}"
+AUTO_HOLD_SCRIPT="${UPORTAL_AUTO_HOLD_SCRIPT:-$SCRIPT_DIR/uportal-auto-hold-expired.sh}"
+AUTO_HOLD_LAST_RUN=0
 
 mkdir -p "$QUEUE_DIR" "$QUOTA_QUEUE_DIR" "$GRANT_DIR" "$RESERVATION_DIR" "$ACCOUNT_QUOTA_DIR"
 
@@ -409,13 +414,51 @@ cleanup_upload_grants() {
     done
 }
 
+run_auto_hold_expired() {
+  local now_epoch
+  local output
+  local summary
+  local status
+
+  case "$AUTO_HOLD_ENABLED" in
+    1|true|yes) ;;
+    *) return 0 ;;
+  esac
+  [[ "$AUTO_HOLD_INTERVAL_SECONDS" =~ ^[0-9]+$ ]] || AUTO_HOLD_INTERVAL_SECONDS=1800
+  [ "$AUTO_HOLD_INTERVAL_SECONDS" -gt 0 ] || return 0
+
+  now_epoch="$(date +%s)"
+  if [ $((now_epoch - AUTO_HOLD_LAST_RUN)) -lt "$AUTO_HOLD_INTERVAL_SECONDS" ]; then
+    return 0
+  fi
+  AUTO_HOLD_LAST_RUN="$now_epoch"
+
+  [ -x "$AUTO_HOLD_SCRIPT" ] || {
+    log "auto-hold skipped reason=script_not_executable path=$AUTO_HOLD_SCRIPT"
+    return 0
+  }
+
+  set +e
+  output="$("$AUTO_HOLD_SCRIPT" 2>&1)"
+  status=$?
+  set -e
+
+  if [ "$status" -eq 0 ]; then
+    summary="$(printf '%s' "$output" | jq -c '.message[0] | del(.links)' 2>/dev/null || printf '%s' "$output")"
+    log "auto-hold processed result=$summary"
+  else
+    log "auto-hold failed status=$status result=$output"
+  fi
+}
+
 tick() {
   process_notify_queue
   process_quota_queue
   cleanup_upload_grants
+  run_auto_hold_expired
 }
 
-log "uportal service worker started telegram_queue=$QUEUE_DIR quota_queue=$QUOTA_QUEUE_DIR grants=$GRANT_DIR"
+log "uportal service worker started telegram_queue=$QUEUE_DIR quota_queue=$QUOTA_QUEUE_DIR grants=$GRANT_DIR auto_hold=$AUTO_HOLD_ENABLED"
 
 while true; do
   tick

@@ -107,6 +107,7 @@ if [ -f "$INDEX_FILE" ]; then
               token,
               type,
               status: (.status // "active"),
+              status_history: (if (.status_history | type) == "array" then .status_history else [] end),
               short_id: (.short_id // .short // ""),
               short_url: (
                 if ((.short_id // .short // "") != "")
@@ -313,6 +314,7 @@ find "$SEARCH_ROOT" -type f -name '*.json' -print0 \
           token,
           type,
           status: (.status // "active"),
+          status_history: (if (.status_history | type) == "array" then .status_history else [] end),
           short_id: (.short_id // .short // ""),
           short_url: (
             if ((.short_id // .short // "") != "")

@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="{{LANG}}">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+
+  <title>{{TITLE}}</title>
+
+  <meta property="og:type" content="website"/>
+  <meta property="og:title" content="{{TITLE}}"/>
+  <meta property="og:description" content="{{DESCRIPTION}}"/>
+  <meta property="og:image" content="{{IMAGE}}"/>
+  <meta property="og:url" content="{{CANONICAL_URL}}"/>
+
+  <meta name="robots" content="noindex,nofollow">
+  <meta http-equiv="refresh" content="1;url={{TARGET_URL}}">
+</head>
+<body>
+  <script>
+    const OPEN_URL = {{OPEN_URL_JS}};
+
+    async function pingOpen() {
+      if (!OPEN_URL) return;
+      try {
+        await fetch(OPEN_URL, {
+          method: 'POST',
+          credentials: 'same-origin',
+          cache: 'no-store'
+        });
+      } catch {}
+    }
+
+    (async () => {
+      await pingOpen();
+      setTimeout(function () {
+        location.replace("{{TARGET_URL}}");
+      }, 800);
+    })();
+  </script>
+</body>
+</html>

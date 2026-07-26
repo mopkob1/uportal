@@ -41,6 +41,7 @@ sticky="${12:-}"
 client_uid="${13:-}"
 client_type="${14:-}"
 lang="${15:-en}"
+template_set="${16:-default}"
 
 BASE="/data/files/uportal"
 META_DIR="$BASE/meta/$publication_id"
@@ -103,6 +104,7 @@ case "${lang,,}" in
   auto|ru|en|es) ;;
   *) lang="en" ;;
 esac
+printf '%s' "$template_set" | grep -Eq '^[A-Za-z0-9._-]{1,64}$' || template_set="default"
 
 # ===== short =====
 
@@ -121,12 +123,14 @@ BASE_URL="$(uportal_public_base_url)"
 [ -n "$fallback_url" ] || fallback_url="$(uportal_fallback_url)"
 HTML="<img src=\"$BASE_URL/s/$short\" width=\"1\" height=\"1\" alt=\"\" />"
 load_actions "$META_FILE"
+STATUS_HISTORY_JSON="$(jq -c 'if (.status_history | type) == "array" then .status_history else [] end' "$META_FILE" 2>/dev/null || printf '[]')"
 
 # ===== meta =====
 
 jq -n \
   --arg type "pixel" \
   --arg status "$status" \
+  --argjson status_history "$STATUS_HISTORY_JSON" \
   --arg publication_id "$publication_id" \
   --arg token "$token" \
   --arg short_id "$short" \
@@ -139,10 +143,12 @@ jq -n \
   --arg fresh_until "$fresh_until" \
   --argjson remaining_clicks "$remaining_clicks" \
   --arg fallback_url "$fallback_url" \
-  --arg lang "$lang" '
+  --arg lang "$lang" \
+  --arg template_set "$template_set" '
   {
     type: $type,
     status: $status,
+    status_history: $status_history,
 
     publication_id: $publication_id,
     token: $token,
@@ -158,9 +164,12 @@ jq -n \
     fresh_until: $fresh_until,
     remaining_clicks: $remaining_clicks,
     fallback_url: $fallback_url,
-    lang: $lang
+    lang: $lang,
+    template_set: $template_set
   }
 ' > "$META_FILE"
+
+append_status_history "$META_FILE" "$status" "user" "published"
 
 append_action "$META_FILE" "pixel" "$actor" "$short"
 
@@ -197,13 +206,16 @@ jq -n \
   --argjson remaining_clicks "$remaining_clicks" \
   --arg fallback_url "$fallback_url" \
   --arg lang "$lang" \
-  --arg html "$HTML" '
+  --arg template_set "$template_set" \
+  --arg html "$HTML" \
+  --slurpfile meta "$META_FILE" '
   {
     status: "success",
     message: [
       {
         type: $type,
         status: $status,
+        status_history: ($meta[0].status_history // []),
 
         publication_id: $publication_id,
         token: $token,
@@ -220,6 +232,7 @@ jq -n \
         remaining_clicks: $remaining_clicks,
         fallback_url: $fallback_url,
         lang: $lang,
+        template_set: $template_set,
 
         html: $html
       }

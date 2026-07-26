@@ -215,8 +215,7 @@ const columns = [
             tone: 'edit',
             disabled: !tokenCanEdit(row),
             onClick: () => openEdit(row)
-          }),
-          tariffTag(row)
+          })
       ]
 
       if (hasAdminToken.value) {
@@ -236,6 +235,8 @@ const columns = [
             })
           }))
       }
+
+      buttons.push(tariffTag(row))
 
       return h(NSpace, {}, {
         default: () => buttons
@@ -737,7 +738,7 @@ function tariffTag(row) {
   return h(NTag, {
     size: 'small',
     round: true,
-    bordered: false,
+    bordered: true,
     color: tariffTagColor(plan),
     title: plan,
     style: {
@@ -745,7 +746,7 @@ function tariffTag(row) {
       padding: '0 6px',
       fontSize: '10px',
       lineHeight: '18px',
-      fontWeight: '700',
+      fontWeight: '400',
       letterSpacing: '0'
     }
   }, {
@@ -761,11 +762,11 @@ function normalizeTariffPlan(value) {
 
 function tariffTagColor(plan) {
   return {
-    FREE: { color: '#e5e7eb', textColor: '#4b5563' },
-    PRO: { color: '#dbeafe', textColor: '#1d4ed8' },
-    PERSONAL: { color: '#dcfce7', textColor: '#15803d' },
-    TEAM: { color: '#fee2e2', textColor: '#b91c1c' }
-  }[plan] || { color: '#f3f4f6', textColor: '#374151' }
+    FREE: { color: '#f3f4f6', textColor: '#4b5563', borderColor: '#d1d5db' },
+    PRO: { color: '#eff6ff', textColor: '#1d4ed8', borderColor: '#bfdbfe' },
+    PERSONAL: { color: '#f0fdf4', textColor: '#15803d', borderColor: '#bbf7d0' },
+    TEAM: { color: '#fef2f2', textColor: '#b91c1c', borderColor: '#fecaca' }
+  }[plan] || { color: '#f9fafb', textColor: '#374151', borderColor: '#e5e7eb' }
 }
 
 function formatScope(scope) {

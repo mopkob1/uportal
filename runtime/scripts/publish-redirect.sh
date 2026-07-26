@@ -57,6 +57,7 @@ sticky="${25:-}"
 client_uid="${26:-}"
 client_type="${27:-}"
 lang="${28:-en}"
+template_set="${29:-default}"
 
 # Compatibility with endpoint variants where pre/post were inserted before actor.
 if [ -n "${25:-}" ] && [ -z "${26:-}" ] && [ "${25:-}" != "1" ] && [ "${25:-}" != "true" ] && [ "${25:-}" != "yes" ] && [ "${25:-}" != "0" ] && [ "${25:-}" != "false" ] && [ "${25:-}" != "no" ]; then
@@ -169,16 +170,19 @@ case "${lang,,}" in
   auto|ru|en|es) ;;
   *) lang="en" ;;
 esac
+printf '%s' "$template_set" | grep -Eq '^[A-Za-z0-9._-]{1,64}$' || template_set="default"
 
 META_FILE="$META_DIR/$token.json"
 BASE_URL="$(uportal_public_base_url)"
 [ -n "$fallback_url" ] || fallback_url="$(uportal_fallback_url)"
 HTML="<a href=\"$BASE_URL/s/$short\">$link</a>"
 load_actions "$META_FILE"
+STATUS_HISTORY_JSON="$(jq -c 'if (.status_history | type) == "array" then .status_history else [] end' "$META_FILE" 2>/dev/null || printf '[]')"
 
 jq -n \
   --arg type "redirect" \
   --arg status "$status" \
+  --argjson status_history "$STATUS_HISTORY_JSON" \
   --arg publication_id "$publication_id" \
   --arg token "$token" \
   --arg short_id "$short" \
@@ -199,6 +203,7 @@ jq -n \
   --arg target_url "$target_url" \
   --arg delay "$delay" \
   --arg template "$template" \
+  --arg template_set "$template_set" \
   --arg stat_ttl_sec "$stat_ttl_sec" \
   --arg password_hash "$password_hash" \
   --arg password_hint "$password_hint" \
@@ -207,6 +212,7 @@ jq -n \
   {
     type: $type,
     status: $status,
+    status_history: $status_history,
 
     publication_id: $publication_id,
     token: $token,
@@ -231,6 +237,7 @@ jq -n \
     target_url: $target_url,
     delay: $delay,
     template: $template,
+    template_set: $template_set,
     stat_ttl_sec: $stat_ttl_sec,
     lang: $lang
   }
@@ -247,6 +254,8 @@ jq -n \
     end
   )
 ' > "$META_FILE"
+
+append_status_history "$META_FILE" "$status" "user" "published"
 
 append_action \
   "$META_FILE" \
@@ -298,12 +307,14 @@ jq -n \
   --arg target_url "$target_url" \
   --arg delay "$delay" \
   --arg template "$template" \
+  --arg template_set "$template_set" \
   --arg stat_ttl_sec "$stat_ttl_sec" \
   --arg password_hash "$password_hash" \
   --arg password_hint "$password_hint" \
   --arg password_ttl_sec "$password_ttl_sec" \
   --arg lang "$lang" \
-  --arg html "$HTML" '
+  --arg html "$HTML" \
+  --slurpfile meta "$META_FILE" '
   {
     status: "success",
     message: [
@@ -311,6 +322,7 @@ jq -n \
         {
           type: $type,
           status: $status,
+          status_history: ($meta[0].status_history // []),
 
           publication_id: $publication_id,
           token: $token,
@@ -337,6 +349,7 @@ jq -n \
           target_url: $target_url,
           delay: $delay,
           template: $template,
+          template_set: $template_set,
           stat_ttl_sec: $stat_ttl_sec,
           lang: $lang,
 

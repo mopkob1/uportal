@@ -81,7 +81,8 @@ COPY --from=plugin-builder /src/plugin/uportal-link-inserter.xpi /opt/uportal/bu
 
 RUN set -eu; \
     chmod 755 /usr/local/bin/uportal-container-entrypoint /usr/local/bin/shhoook; \
-    find /opt/uportal/runtime/scripts -maxdepth 1 -type f -name '*.sh' -exec chmod 755 {} \;
+    find /opt/uportal/runtime/scripts -maxdepth 1 -type f -name '*.sh' -exec chmod 755 {} \; ; \
+    find /opt/uportal/runtime/service-workers -maxdepth 1 -type f -name '*.sh' -exec chmod 755 {} \;
 
 EXPOSE 8080
 

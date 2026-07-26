@@ -481,6 +481,7 @@ function buildPublishPayload(draft) {
     title: draft.form?.title || draft.title || '',
     description: draft.form?.description || draft.description || '',
     delay: String(normalizeNonNegativeInteger(draft.form?.delay ?? draft.delay ?? 0)),
+    template_set: normalizeTemplateSet(draft.form?.template_set ?? draft.template_set ?? draft.templateSet),
     fresh_until: normalizeLimit(draft.fresh_until),
     remaining_clicks: String(normalizeClicksLimit(draft.remaining_clicks)),
     fallback_url: draft.fallback_url || '',
@@ -512,6 +513,11 @@ function normalizeTemplateLanguage(value) {
   const lang = String(value || '').trim().toLowerCase().split('-')[0]
   if (lang === 'auto') return 'auto'
   return ['en', 'ru', 'es'].includes(lang) ? lang : 'en'
+}
+
+function normalizeTemplateSet(value) {
+  const templateSet = String(value || 'default').trim()
+  return /^[A-Za-z0-9._-]{1,64}$/.test(templateSet) ? templateSet : 'default'
 }
 
 function normalizeMails(value) {

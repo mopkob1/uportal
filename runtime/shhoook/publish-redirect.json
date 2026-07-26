@@ -18,6 +18,7 @@
     "fallback_url": "__UPORTAL_BASE_URL__/link-fallback",
     "delay": "0",
     "template": "redirect",
+    "template_set": "default",
     "stat_ttl_sec": "15",
     "title": "",
     "description": "",
@@ -60,6 +61,7 @@
     "{sticky}",
     "{client_uid}",
     "{client_type}",
-    "{lang}"
+    "{lang}",
+    "{template_set}"
   ]
 }

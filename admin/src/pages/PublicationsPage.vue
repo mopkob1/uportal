@@ -219,8 +219,10 @@ const canUseTelegramNotify = computed(() => {
   const session = store.state.siteSession || {}
   const scope = Array.isArray(session.scope) ? session.scope : []
   const limits = session.limits || {}
+  const plan = String(session.plan || '').toLowerCase()
 
   return store.state.authMode === 'site-session' &&
+      plan !== 'free' &&
       Boolean(session.bindings?.telegram) &&
       (scope.includes('publication:telegram_notify') || limits.telegramNotifications === true)
 })

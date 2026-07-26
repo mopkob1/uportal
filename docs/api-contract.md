@@ -156,11 +156,13 @@ Auth gateway callback usage is documented in
 | `link` | string | Anchor text. Required for redirect, page and download. |
 | `post` | string | Text after anchor. |
 | `status` | string | `active` or `hold`; publish defaults to `active`. |
+| `status_history` | array of objects | Status transition log. Each entry has `date`, `status`, `src`, and optional `reason`. `status` remains the current-status source of truth. |
 | `fresh_until` | string | ISO datetime string or `"-1"` for no freshness limit. Empty/null is normalized to `"-1"`. |
 | `remaining_clicks` | integer or numeric string | `-1` means unlimited. Invalid or negative values normalize to `-1`. |
 | `fallback_url` | string | Empty value uses configured runtime fallback URL. |
 | `sticky` | boolean-like string | `1`, `true`, `yes` enable sticky mode; empty/false disable it. |
 | `lang` | string | `en`, `ru` or `es`; other values normalize to `en`. |
+| `template_set` | string | Template folder name. Default `default`. Must match `^[A-Za-z0-9._-]{1,64}$`; invalid values normalize to `default`. |
 | `image` | string | File name previously uploaded to `/upload/<publication_id>/<token>/<file>`. |
 | `title` | string | Preview/title metadata. |
 | `description` | string | Preview/description metadata. |
@@ -188,6 +190,14 @@ Body:
 {
   "type": "redirect",
   "status": "active",
+  "status_history": [
+    {
+      "date": "2026-07-26T12:52:00Z",
+      "status": "active",
+      "src": "user",
+      "reason": "published"
+    }
+  ],
   "publication_id": "pub-mrael53y",
   "token": "redirect-5xydh3",
   "short": "",
@@ -199,6 +209,7 @@ Body:
   "target_url": "https://example.com/confirm?t=...",
   "delay": "15",
   "template": "redirect",
+  "template_set": "default",
   "stat_ttl_sec": "15",
   "title": "",
   "description": "",
@@ -220,6 +231,7 @@ Fields:
 | --- | --- | --- | --- | --- |
 | `type` | no | string | `redirect` | Stored as `redirect`. |
 | `status` | no | string | `active` | `active` or `hold`. |
+| `status_history` | no | array | generated | Runtime scripts maintain this field. Clients should not send it in publish/update requests. |
 | `publication_id` | yes | string |  | Publication id. |
 | `token` | yes | string |  | Link token. |
 | `short` | no | string | generated | Empty generates a 9-character short id. |
@@ -231,6 +243,7 @@ Fields:
 | `target_url` | yes | string |  | Redirect destination. |
 | `delay` | no | integer/string | `0` | Delay before redirect, seconds. |
 | `template` | no | string | `redirect` | Runtime template name. |
+| `template_set` | no | string | `default` | Runtime template folder. Missing files are resolved from `default`, then from the legacy flat template root. |
 | `stat_ttl_sec` | no | integer/string | `15` | Signed tracking URL TTL. |
 | `title` | no | string | empty | Preview metadata. |
 | `description` | no | string | empty | Preview metadata. |
@@ -256,6 +269,14 @@ Successful response:
     {
       "type": "redirect",
       "status": "active",
+      "status_history": [
+        {
+          "date": "2026-07-26T12:52:00Z",
+          "status": "active",
+          "src": "user",
+          "reason": "published"
+        }
+      ],
       "publication_id": "pub-mrael53y",
       "token": "redirect-5xydh3",
       "short_id": "AbC123xYz",
@@ -277,6 +298,7 @@ Successful response:
       "target_url": "https://example.com/confirm?t=...",
       "delay": "15",
       "template": "redirect",
+      "template_set": "default",
       "stat_ttl_sec": "15",
       "lang": "ru",
       "html": "<a href=\"https://u.example/s/AbC123xYz\">перейдите по ссылке</a>"
@@ -318,6 +340,7 @@ Body:
   "title": "",
   "description": "",
   "page_ttl_sec": "1800",
+  "template_set": "default",
   "fresh_until": "-1",
   "remaining_clicks": "-1",
   "fallback_url": "",
@@ -333,7 +356,9 @@ Required fields: `publication_id`, `token`, `subj`, `mails`, `link`,
 `entry_md`.
 
 `entry_md` must exist in the upload inbox. The script copies all uploaded files
-from the inbox into runtime page storage.
+from the inbox into runtime page storage. Page runtime templates
+`page-open.html`, `page-shell.html` and `password.html` are resolved from
+`template_set`, then from `default`, then from the legacy flat template root.
 
 ## Publish Download
 
@@ -368,6 +393,7 @@ Body:
   "image": "cover.jpg",
   "delay": "0",
   "template": "download",
+  "template_set": "default",
   "download_ttl_sec": "60",
   "stat_ttl_sec": "15",
   "title": "",
@@ -386,7 +412,9 @@ Body:
 Required fields: `publication_id`, `token`, `subj`, `mails`, `link`, `file`.
 
 `file` must be present in the upload inbox. `filename` is the browser download
-name; if empty, the sanitized uploaded file name is used.
+name; if empty, the sanitized uploaded file name is used. Download runtime
+templates are resolved from `template_set`, then from `default`, then from the
+legacy flat template root.
 
 ## Publish Pixel
 
@@ -411,6 +439,7 @@ Body:
   "remaining_clicks": "-1",
   "fallback_url": "",
   "sticky": "",
+  "template_set": "default",
   "lang": "en"
 }
 ```
@@ -418,7 +447,190 @@ Body:
 Required fields: `publication_id`, `token`, `subj`, `mails`.
 
 The short URL for a pixel returns a 1x1 image response. The `html` field in the
-response contains an `<img>` tag.
+response contains an `<img>` tag. `template_set` is stored with the link for a
+consistent per-link description, although the pixel response itself does not
+render an HTML template.
+
+## Status History And Auto-Hold
+
+`status` remains the current-status source of truth. Runtime and list APIs also
+carry `status_history` as an append-only status transition log:
+
+```json
+[
+  {
+    "date": "2026-07-26T12:52:00Z",
+    "status": "active",
+    "src": "user",
+    "reason": "published"
+  },
+  {
+    "date": "2026-07-26T13:10:00Z",
+    "status": "hold",
+    "src": "system",
+    "reason": "clicks_exhausted"
+  }
+]
+```
+
+Known `src` values:
+
+| Value | Meaning |
+| --- | --- |
+| `user` | User-token driven action. |
+| `admin` | Direct admin-key driven action. |
+| `system` | Runtime service action. |
+
+Known system reasons:
+
+| Reason | Meaning |
+| --- | --- |
+| `published` | Initial status written by publish scripts. |
+| `manual` | Manual status change. |
+| `initial_state` | Backfilled initial status for an old link when history is first created. |
+| `freshness_expired` | `fresh_until` is a past datetime. |
+| `clicks_exhausted` | `remaining_clicks` is `0`. |
+
+The periodic service script is:
+
+```bash
+/usr/local/lib/uportal/service-workers/uportal-auto-hold-expired.sh
+```
+
+It scans active links and automatically changes `status` to `hold` when the
+link is already unavailable because freshness expired or the click limit is
+exhausted. It records the transition in `status_history` with `src: "system"`
+and refreshes the link index.
+
+For every detected and auto-held link, the script scans
+`UPORTAL_AUTO_HOLD_HOOK_DIR` and runs each executable file in that directory.
+Default hook directory:
+
+```text
+/data/files/uportal/auto-hold-hooks
+```
+
+Every hook is called with two arguments:
+
+```bash
+hook-script /data/files/uportal/meta/<publication_id>/<token>.json /tmp/<worker-event>.json
+```
+
+The first argument is the link meta JSON file. The second argument is a temporary
+worker event JSON file:
+
+```json
+{
+  "worker": "uportal-auto-hold-expired",
+  "date": "2026-07-26T13:25:00Z",
+  "event": "auto_hold",
+  "publication_id": "pub1",
+  "token": "redirect-1",
+  "status_before": "active",
+  "status_after": "hold",
+  "reason": "freshness_expired",
+  "hook_dir": "/data/files/uportal/auto-hold-hooks"
+}
+```
+
+Hooks run after the link status has been changed to `hold`. Hook exit codes are
+reported in the auto-Hold script response, but one failed hook does not stop the
+remaining hooks.
+
+The script is idempotent and can be checked without writing:
+
+```bash
+UPORTAL_ROOT=/data/files/uportal uportal-auto-hold-expired.sh --dry-run
+```
+
+## Template Sets
+
+Template sets are folders under the runtime template root. The production
+default is:
+
+```text
+/data/files/uportal/templates
+```
+
+The `default` folder must always exist and contains fallback templates. The
+source tree ships `runtime/templates/default` and `runtime/templates/demo`.
+When a link references `template_set: "demo"`, runtime first tries
+`/data/files/uportal/templates/demo/<template-file>`, then
+`/data/files/uportal/templates/default/<template-file>`, then the legacy flat
+path `/data/files/uportal/templates/<template-file>`.
+
+### List Template Sets
+
+```http
+GET /api/admin/templates/list
+```
+
+Required header:
+
+```http
+X-Admin-Key: <admin-secret>
+```
+
+Successful response:
+
+```json
+{
+  "status": "success",
+  "message": [
+    {
+      "template_root": "/data/files/uportal/templates",
+      "sets": [
+        {
+          "name": "default",
+          "default": true,
+          "files": [
+            {
+              "name": "redirect.html",
+              "size": 1024,
+              "sha256": "..."
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
+```
+
+### Create Or Update Template Set
+
+```http
+POST /api/admin/templates/upsert
+```
+
+Required header:
+
+```http
+X-Admin-Key: <admin-secret>
+```
+
+Body:
+
+```json
+{
+  "template_set": "demo",
+  "files_b64": "eyJyZWRpcmVjdC5odG1sIjoiUEdneFBpLi4uIn0="
+}
+```
+
+`files_b64` is base64-encoded JSON object where keys are relative file names
+and values are base64-encoded file contents:
+
+```json
+{
+  "redirect.html": "PGgxPkRFTU88L2gxPg==",
+  "page-shell.html": "PCFkb2N0eXBlIGh0bWw+..."
+}
+```
+
+The endpoint writes all supplied files into the selected folder. Folder names
+must match `^[A-Za-z0-9._-]{1,64}$`. File names must be relative safe paths and
+cannot contain `..`.
 
 ## Upload
 
@@ -497,6 +709,14 @@ Link item shape:
   "token": "redirect-1",
   "type": "redirect",
   "status": "active",
+  "status_history": [
+    {
+      "date": "2026-07-07T10:00:00Z",
+      "status": "active",
+      "src": "user",
+      "reason": "published"
+    }
+  ],
   "short_id": "AbC123xYz",
   "short_url": "https://u.example/s/AbC123xYz",
   "image": "cover.png",

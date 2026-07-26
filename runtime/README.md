@@ -6,6 +6,7 @@ Runtime package for the server-side part of UPORTAL:
 - njs runtime (`portal.js`)
 - shhoook endpoint configs
 - bash publish/admin/tracking scripts
+- background service worker scripts
 - HTML/CSS templates
 
 Runtime implementation notes and planned work are tracked in `TODO.md`.
@@ -24,7 +25,9 @@ runtime/
   njs/         nginx njs runtime files
   shhoook/     endpoint JSON configs for external shhoook
   scripts/     bash scripts normally installed to /usr/local/bin
-  templates/   files normally installed to /data/files/uportal/templates
+  service-workers/
+               periodic background workers
+  templates/   template sets normally installed to /data/files/uportal/templates
   system/      shhoook systemd/wrapper references
   data/        local backup archives; raw archives are ignored by git
 ```
@@ -44,7 +47,8 @@ runtime/nginx/snippets/*        -> /etc/nginx/snippets/
 runtime/njs/*                   -> /etc/nginx/njs/
 runtime/shhoook/*               -> /etc/shhoook/
 runtime/scripts/*               -> /usr/local/bin/
-runtime/templates/*             -> /data/files/uportal/templates/
+runtime/service-workers/*       -> /usr/local/lib/uportal/service-workers/
+runtime/templates/.             -> /data/files/uportal/templates/
 runtime/system/shhoook.service  -> /etc/systemd/system/shhoook.service
 runtime/system/shhoook-wrapper  -> /usr/local/bin/shhoook-wrapper
 ```
@@ -115,10 +119,10 @@ Recommended high-level order for a fresh server:
 
    ```bash
    sudo apt update
-   sudo apt install nginx libnginx-mod-http-js jq curl openssl tar gzip
+   sudo apt install nginx libnginx-mod-http-js jq curl openssl tar gzip python3
    ```
 
-   The publish scripts also expect common Unix tools such as `bash`, `flock`,
+   The publish/admin scripts also expect common Unix tools such as `bash`, `flock`,
    `find`, `sed`, `tr`, `sha256sum`, `mktemp`, `chmod`, `cp`, `mv`, and `rm`.
 
 2. Install shhoook.
@@ -157,7 +161,9 @@ Recommended high-level order for a fresh server:
    sudo cp runtime/njs/* /etc/nginx/njs/
    sudo cp runtime/shhoook/*.json /etc/shhoook/
    sudo cp runtime/scripts/* /usr/local/bin/
-   sudo cp runtime/templates/* /data/files/uportal/templates/
+   sudo mkdir -p /usr/local/lib/uportal/service-workers
+   sudo cp runtime/service-workers/* /usr/local/lib/uportal/service-workers/
+   sudo cp -a runtime/templates/. /data/files/uportal/templates/
    ```
 
 5. Install shhoook service files.
@@ -165,9 +171,25 @@ Recommended high-level order for a fresh server:
    ```bash
    sudo cp runtime/system/shhoook-wrapper /usr/local/bin/shhoook-wrapper
    sudo cp runtime/system/shhoook.service /etc/systemd/system/shhoook.service
-   sudo chmod 755 /usr/local/bin/shhoook-wrapper /usr/local/bin/uportal-*.sh /usr/local/bin/publish-*.sh /usr/local/bin/admin-*.sh
+   sudo chmod 755 /usr/local/bin/shhoook-wrapper /usr/local/bin/uportal-*.sh /usr/local/bin/publish-*.sh /usr/local/bin/admin-*.sh /usr/local/lib/uportal/service-workers/*.sh
    sudo systemctl daemon-reload
    ```
+
+   The Community service worker runs periodic background maintenance. By default
+   it executes `uportal-auto-hold-expired.sh` once every 30 minutes, moving
+   `active` links to `hold` when `fresh_until` is expired or
+   `remaining_clicks` is `0`.
+   Override with:
+
+   ```text
+   UPORTAL_AUTO_HOLD_ENABLED=0
+   UPORTAL_AUTO_HOLD_INTERVAL_SECONDS=1800
+   UPORTAL_AUTO_HOLD_HOOK_DIR=/data/files/uportal/auto-hold-hooks
+   ```
+
+   When auto-Hold detects and deactivates a link, every executable file in
+   `UPORTAL_AUTO_HOLD_HOOK_DIR` is run with two arguments: the link meta JSON
+   file and a temporary worker-event JSON file.
 
 6. Replace deployment secrets and local endpoints.
 
@@ -198,9 +220,13 @@ Recommended high-level order for a fresh server:
    # /data/files/uportal/pixel/1x1.gif
    ```
 
-   If templates are generated from a CSS build step, make sure
-   `/data/files/uportal/templates/shell.tailwind.css` exists before testing
-   pages.
+   Runtime templates are organized by set name. Keep
+   `/data/files/uportal/templates/default` present; it is the fallback set for
+   all links. The source package also includes `demo`, whose page shell displays
+   `DEMO TEMPLATE` for template-set smoke checks. If templates are generated
+   from a CSS build step, make sure
+   `/data/files/uportal/templates/default/shell.tailwind.css` exists before
+   testing pages.
 
 8. Check nginx config and start services.
 

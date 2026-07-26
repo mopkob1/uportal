@@ -59,6 +59,7 @@ sticky="${27:-}"
 client_uid="${28:-}"
 client_type="${29:-}"
 lang="${30:-en}"
+template_set="${31:-default}"
 
 BASE="/data/files/uportal"
 INBOX_BASE="/data/files/inbox"
@@ -154,6 +155,7 @@ case "${lang,,}" in
   auto|ru|en|es) ;;
   *) lang="en" ;;
 esac
+printf '%s' "$template_set" | grep -Eq '^[A-Za-z0-9._-]{1,64}$' || template_set="default"
 
 src_file="$INBOX_DIR/$file"
 [ -f "$src_file" ] || json_error "source file not found in inbox: $src_file"
@@ -178,11 +180,13 @@ BASE_URL="$(uportal_public_base_url)"
 [ -n "$fallback_url" ] || fallback_url="$(uportal_fallback_url)"
 HTML="<a href=\"$BASE_URL/s/$short\">$link</a>"
 load_actions "$META_FILE"
+STATUS_HISTORY_JSON="$(jq -c 'if (.status_history | type) == "array" then .status_history else [] end' "$META_FILE" 2>/dev/null || printf '[]')"
 
 
 jq -n \
   --arg type "download" \
   --arg status "$status" \
+  --argjson status_history "$STATUS_HISTORY_JSON" \
   --arg publication_id "$publication_id" \
   --arg token "$token" \
   --arg short_id "$short" \
@@ -204,6 +208,7 @@ jq -n \
   --arg filename "$filename" \
   --arg delay "$delay" \
   --arg template "$template" \
+  --arg template_set "$template_set" \
   --arg download_ttl_sec "$download_ttl_sec" \
   --arg stat_ttl_sec "$stat_ttl_sec" \
   --arg password_hash "$password_hash" \
@@ -213,6 +218,7 @@ jq -n \
   {
     type: $type,
     status: $status,
+    status_history: $status_history,
 
     publication_id: $publication_id,
     token: $token,
@@ -238,6 +244,7 @@ jq -n \
     filename: $filename,
     delay: $delay,
     template: $template,
+    template_set: $template_set,
     download_ttl_sec: $download_ttl_sec,
     stat_ttl_sec: $stat_ttl_sec,
     lang: $lang
@@ -255,6 +262,8 @@ jq -n \
     end
   )
 ' > "$META_FILE"
+
+append_status_history "$META_FILE" "$status" "user" "published"
 
 append_action "$META_FILE" "download" "$actor" "$short"
 
@@ -299,13 +308,15 @@ jq -n \
   --arg filename "$filename" \
   --arg delay "$delay" \
   --arg template "$template" \
+  --arg template_set "$template_set" \
   --arg download_ttl_sec "$download_ttl_sec" \
   --arg stat_ttl_sec "$stat_ttl_sec" \
   --arg password_hash "$password_hash" \
   --arg password_hint "$password_hint" \
   --arg password_ttl_sec "$password_ttl_sec" \
   --arg lang "$lang" \
-  --arg html "$HTML" '
+  --arg html "$HTML" \
+  --slurpfile meta "$META_FILE" '
   {
     status: "success",
     message: [
@@ -313,6 +324,7 @@ jq -n \
         {
           type: $type,
           status: $status,
+          status_history: ($meta[0].status_history // []),
 
           publication_id: $publication_id,
           token: $token,
@@ -340,6 +352,7 @@ jq -n \
           filename: $filename,
           delay: $delay,
           template: $template,
+          template_set: $template_set,
           download_ttl_sec: $download_ttl_sec,
           stat_ttl_sec: $stat_ttl_sec,
           lang: $lang,

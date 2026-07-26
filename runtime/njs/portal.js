@@ -133,6 +133,7 @@ function render(tpl, vars) {
     var out = String(tpl || '');
     for (var k in vars) {
         if (!Object.prototype.hasOwnProperty.call(vars, k)) continue;
+        if (k.indexOf('__') === 0) continue;
         out = replaceAllCompat(out, '{{' + k + '}}', String(vars[k]));
     }
     return out;
@@ -382,12 +383,27 @@ function pageDir(r, publicationId, token) {
     return cfg(r, 'uportal_storage_root', '/data/files/uportal/storage') + '/' + publicationId + '/' + token + '/page';
 }
 
-function templatePath(r, name) {
-    return cfg(r, 'uportal_template_root', '/data/files/uportal/templates') + '/' + name;
+function templateSetName(meta) {
+    return safeSeg(
+        (meta && (meta.template_set || meta.templateSet || meta.template_folder || meta.templateFolder)) || 'default',
+        'default'
+    );
+}
+
+function templatePath(r, name, meta) {
+    var root = cfg(r, 'uportal_template_root', '/data/files/uportal/templates');
+    var setName = templateSetName(meta);
+    var selected = root + '/' + setName + '/' + name;
+    if (fs.existsSync(selected)) return selected;
+
+    var fallback = root + '/default/' + name;
+    if (fs.existsSync(fallback)) return fallback;
+
+    return root + '/' + name;
 }
 
 function addBrandVars(r, vars) {
-    var logo = readText(templatePath(r, 'uportal-logo.svg'));
+    var logo = readText(templatePath(r, 'uportal-logo.svg', vars && vars.__meta));
     vars.UPORTAL_GITHUB_URL = escAttr(cfg(r, 'uportal_github_url', 'https://github.com/mopkob1/uportal'));
     vars.UPORTAL_LOGO_SVG = logo || '<span>UPORTAL</span>';
     return vars;
@@ -732,7 +748,7 @@ function isPasswordAuthorized(r, meta) {
 }
 
 function requirePasswordPage(r, meta) {
-    var tpl = readText(templatePath(r, 'password.html'));
+    var tpl = readText(templatePath(r, 'password.html', meta));
     if (tpl === null) {
         return r.return(500, 'password template not found');
     }
@@ -741,6 +757,7 @@ function requirePasswordPage(r, meta) {
     var c = captions(lang);
     var redirectTo = meta && meta.short_id ? '/s/' + meta.short_id : '/';
     var vars = templateCaptionVars(lang);
+    vars.__meta = meta;
     vars.TITLE = escHtml(meta.title || c.fallbackTitle);
     vars.DESCRIPTION = escHtml(meta.description || c.protectedDescription);
     vars.PASSWORD_HINT = escHtml(meta.password_hint || '');
@@ -815,7 +832,7 @@ async function dispatchShort(r) {
     if (meta.type === 'page') {
         setPageCookie(r, meta);
 
-        var tplp = readText(templatePath(r, 'page-open.html'));
+        var tplp = readText(templatePath(r, 'page-open.html', meta));
         var langp = metaLang(r, meta);
         var capsp = captions(langp);
         var base = cfg(r, 'uportal_base_url', 'http://localhost:8080');
@@ -843,13 +860,14 @@ async function dispatchShort(r) {
     }
 
     if (meta.type === 'redirect') {
-        var tplr = readText(templatePath(r, safeSeg(meta.template || 'redirect', 'redirect') + '.html'));
+        var tplr = readText(templatePath(r, safeSeg(meta.template || 'redirect', 'redirect') + '.html', meta));
         if (tplr === null) return safeRedirect(r, getFallback(r, meta));
         var langr = metaLang(r, meta);
         var delay = parseInt(meta.delay || 0, 10);
         if (isNaN(delay) || delay < 0) delay = 0;
 
         var varsr = templateCaptionVars(langr);
+        varsr.__meta = meta;
         varsr.TITLE = escHtml(linkPreviewTitle(meta, captions(langr).redirectTitle));
         varsr.DESCRIPTION = escHtml(linkPreviewDescription(meta));
         varsr.IMAGE = escAttr(publicAssetUrl(r, meta));
@@ -868,13 +886,14 @@ async function dispatchShort(r) {
     }
 
     if (meta.type === 'download') {
-        var tpld = readText(templatePath(r, safeSeg(meta.template || 'download', 'download') + '.html'));
+        var tpld = readText(templatePath(r, safeSeg(meta.template || 'download', 'download') + '.html', meta));
         if (tpld === null) return safeRedirect(r, getFallback(r, meta));
         var langd = metaLang(r, meta);
         var delayd = parseInt(meta.delay || 0, 10);
         if (isNaN(delayd) || delayd < 0) delayd = 0;
 
         var varsd = templateCaptionVars(langd);
+        varsd.__meta = meta;
         varsd.TITLE = escHtml(linkPreviewTitle(meta, captions(langd).downloadTitle));
         varsd.DESCRIPTION = escHtml(linkPreviewDescription(meta));
         varsd.IMAGE = escAttr(publicAssetUrl(r, meta));
@@ -1032,7 +1051,7 @@ function pageShell(r) {
     }
 
     var shell = readText(pageDir(r, pt.publication_id, pt.token) + '/shell.html');
-    if (shell === null) shell = readText(templatePath(r, 'page-shell.html'));
+    if (shell === null) shell = readText(templatePath(r, 'page-shell.html', meta));
     if (shell === null) return r.return(404);
 
     var base = cfg(r, 'uportal_base_url', 'http://localhost:8080');
@@ -1044,6 +1063,7 @@ function pageShell(r) {
 
     var lang = metaLang(r, meta);
     var vars = templateCaptionVars(lang);
+    vars.__meta = meta;
     vars.TITLE = escHtml(meta.title || captions(lang).pageTitle);
     vars.DESCRIPTION = escHtml(meta.description || '');
     vars.PUBLICATION_ID = escAttr(pt.publication_id);
