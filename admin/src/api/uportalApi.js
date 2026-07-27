@@ -1,6 +1,6 @@
 import axios from 'axios'
 import store, { normalizeServerUrl } from '../store'
-import { getDraftAsset } from '../services/draftAssetStore'
+import { deleteDraftAssetsForDraft, getDraftAsset } from '../services/draftAssetStore'
 
 const api = axios.create({
   timeout: 30000
@@ -84,12 +84,14 @@ export async function publishDraftRequest(draft) {
   ) {
     const data = await publishDraftWithBlobWorkflow(payload, uploads)
     assertSuccessResponse(data)
+    await deleteDraftAssetsForDraft(draft).catch(() => {})
     return data
   }
 
   await uploadDraftAssets(draft, uploads)
   const { data } = await api.post(`/api/admin/publish/${payload.type}`, payload)
   assertSuccessResponse(data)
+  await deleteDraftAssetsForDraft(draft).catch(() => {})
   return data
 }
 
