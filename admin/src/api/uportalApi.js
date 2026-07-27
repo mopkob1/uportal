@@ -76,7 +76,12 @@ export async function publishDraftRequest(draft) {
   validatePublishPayload(payload)
   const uploads = await collectDraftUploads(draft)
 
-  if (store.state.authMode === 'site-session' && store.state.siteBackendAvailable && uploads.length) {
+  if (
+    store.state.authMode === 'site-session' &&
+    store.state.siteBackendAvailable &&
+    uploads.length &&
+    ['page', 'download'].includes(payload.type)
+  ) {
     const data = await publishDraftWithBlobWorkflow(payload, uploads)
     assertSuccessResponse(data)
     return data
@@ -103,6 +108,11 @@ async function uploadDraftAssets(draft, knownUploads = null) {
   const uniqueUploads = knownUploads || await collectDraftUploads(draft)
   const [firstUpload, ...remainingUploads] = uniqueUploads
   if (!firstUpload) return
+
+  if (store.state.authMode === 'site-session' && store.state.siteBackendAvailable) {
+    await uploadPublicationFilesWithGrant(draft.publication_id, draft.token, uniqueUploads)
+    return
+  }
 
   await uploadPublicationFile(draft.publication_id, draft.token, firstUpload.name, firstUpload.file)
 
@@ -579,7 +589,8 @@ function normalizePublishLink(draft, type) {
 }
 
 function validatePublishPayload(payload) {
-  const required = ['publication_id', 'token', 'subj', 'link']
+  const required = ['publication_id', 'token', 'subj']
+  if (payload.type !== 'pixel') required.push('link')
   if (payload.type === 'redirect') required.push('target_url')
 
   const missing = required.find(field => {
