@@ -16,13 +16,17 @@ const ICONS_ON = {
   16: 'icons/uportal-color-16.png',
   32: 'icons/uportal-color-32.png',
   48: 'icons/uportal-color-48.png',
-  64: 'icons/uportal-color-64.png'
+  64: 'icons/uportal-color-64.png',
+  96: 'icons/uportal-color-96.png',
+  128: 'icons/uportal-color-128.png'
 }
 const ICONS_OFF = {
   16: 'icons/uportal-gray-16.png',
   32: 'icons/uportal-gray-32.png',
   48: 'icons/uportal-gray-48.png',
-  64: 'icons/uportal-gray-64.png'
+  64: 'icons/uportal-gray-64.png',
+  96: 'icons/uportal-gray-96.png',
+  128: 'icons/uportal-gray-128.png'
 }
 
 let dictionaryCache = null
@@ -108,6 +112,9 @@ async function updateComposeActionIcon(enabled = null) {
   if (!action?.setIcon) return
 
   try {
+    if (action.setTitle) {
+      await action.setTitle({ title: ' ' })
+    }
     await action.setIcon({ path: isEnabled ? ICONS_ON : ICONS_OFF })
   } catch (error) {
     console.warn('UPORTAL icon update failed', error)
