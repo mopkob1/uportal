@@ -96,6 +96,19 @@ safe_file_seg() {
   printf '%s' "${s:-file.bin}"
 }
 
+copy_or_link_payload() {
+  local src="$1"
+  local dst="$2"
+  local target
+  if [ -L "$src" ]; then
+    target="$(readlink "$src")"
+    rm -f -- "$dst"
+    ln -s -- "$target" "$dst"
+  else
+    cp -f "$src" "$dst"
+  fi
+}
+
 cleanup_inbox_after_publish() {
   case "$INBOX_DIR" in
     /data/files/inbox/"$publication_id"/"$token")
@@ -161,13 +174,13 @@ src_file="$INBOX_DIR/$file"
 [ -f "$src_file" ] || json_error "source file not found in inbox: $src_file"
 
 safe_file="$(safe_file_seg "$file")"
-cp -f "$src_file" "$PAYLOAD_DIR/$safe_file"
+copy_or_link_payload "$src_file" "$PAYLOAD_DIR/$safe_file"
 
 safe_image=""
 if [ -n "$image" ]; then
   safe_image="$(safe_file_seg "$image")"
   if [ -f "$INBOX_DIR/$image" ]; then
-    cp -f "$INBOX_DIR/$image" "$PAYLOAD_DIR/$safe_image"
+    copy_or_link_payload "$INBOX_DIR/$image" "$PAYLOAD_DIR/$safe_image"
   fi
 fi
 

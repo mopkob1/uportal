@@ -74,7 +74,15 @@ export async function linksList(filters = {}) {
 export async function publishDraftRequest(draft) {
   const payload = buildPublishPayload(draft)
   validatePublishPayload(payload)
-  await uploadDraftAssets(draft)
+  const uploads = await collectDraftUploads(draft)
+
+  if (store.state.authMode === 'site-session' && store.state.siteBackendAvailable && uploads.length) {
+    const data = await publishDraftWithBlobWorkflow(payload, uploads)
+    assertSuccessResponse(data)
+    return data
+  }
+
+  await uploadDraftAssets(draft, uploads)
   const { data } = await api.post(`/api/admin/publish/${payload.type}`, payload)
   assertSuccessResponse(data)
   return data
@@ -91,7 +99,21 @@ function assertSuccessResponse(data) {
   throw new Error(text)
 }
 
-async function uploadDraftAssets(draft) {
+async function uploadDraftAssets(draft, knownUploads = null) {
+  const uniqueUploads = knownUploads || await collectDraftUploads(draft)
+  const [firstUpload, ...remainingUploads] = uniqueUploads
+  if (!firstUpload) return
+
+  await uploadPublicationFile(draft.publication_id, draft.token, firstUpload.name, firstUpload.file)
+
+  await Promise.all(
+    remainingUploads.map(({ name, file }) =>
+      uploadPublicationFile(draft.publication_id, draft.token, name, file)
+    )
+  )
+}
+
+async function collectDraftUploads(draft) {
   const uploads = []
 
   if (draft.publication_id && draft.token && draft.image) {
@@ -138,25 +160,52 @@ async function uploadDraftAssets(draft) {
     uploads.push(...pageFiles.filter(Boolean))
   }
 
-  const uniqueUploads = Array.from(
+  return Array.from(
     uploads.reduce((map, item) => map.set(item.name, item), new Map()).values()
   )
+}
 
-  const [firstUpload, ...remainingUploads] = uniqueUploads
-  if (!firstUpload) return
+async function publishDraftWithBlobWorkflow(payload, uploads) {
+  const files = await Promise.all(
+    uploads.map(async ({ name, file }) => ({
+      name,
+      size: file.size,
+      sha256: await sha256File(file),
+      content_type: file.type || 'application/octet-stream',
+      file
+    }))
+  )
 
-  if (store.state.authMode === 'site-session' && store.state.siteBackendAvailable) {
-    await uploadPublicationFilesWithGrant(draft.publication_id, draft.token, uniqueUploads)
-    return
+  const { data: draftData } = await api.post('/api/site/publish/draft', {
+    payload,
+    files: files.map(({ name, size, sha256, content_type }) => ({
+      name,
+      size,
+      sha256,
+      content_type
+    }))
+  })
+
+  const draftId = draftData?.data?.draft_id || draftData?.draft_id || ''
+  if (!draftId) {
+    throw new Error(errorText(draftData?.error) || 'publish draft was not created')
   }
 
-  await uploadPublicationFile(draft.publication_id, draft.token, firstUpload.name, firstUpload.file)
-
-  await Promise.all(
-    remainingUploads.map(({ name, file }) =>
-      uploadPublicationFile(draft.publication_id, draft.token, name, file)
+  try {
+    const missing = Array.isArray(draftData?.data?.missing) ? draftData.data.missing : []
+    const missingHashes = new Set(missing.map((item) => item.sha256))
+    await Promise.all(
+      files
+        .filter((item) => missingHashes.has(item.sha256))
+        .map((item) => uploadBlobFile(draftId, item))
     )
-  )
+
+    const { data } = await api.post(`/api/site/publish/draft/${encodeURIComponent(draftId)}/commit`)
+    return data
+  } catch (error) {
+    await cancelPublishDraft(draftId, 'client_error').catch(() => {})
+    throw error
+  }
 }
 
 async function uploadPublicationFilesWithGrant(publicationId, token, uploads) {
@@ -171,6 +220,33 @@ async function uploadPublicationFilesWithGrant(publicationId, token, uploads) {
   } finally {
     await revokeUploadGrant(grant.grant).catch(() => {})
   }
+}
+
+async function sha256File(file) {
+  const buffer = await file.arrayBuffer()
+  const digest = await crypto.subtle.digest('SHA-256', buffer)
+  return [...new Uint8Array(digest)]
+    .map((byte) => byte.toString(16).padStart(2, '0'))
+    .join('')
+}
+
+async function uploadBlobFile(draftId, item) {
+  try {
+    await api.put(`/api/site/blob/${item.sha256}`, item.file, {
+      timeout: UPLOAD_TIMEOUT_MS,
+      headers: {
+        'Content-Type': 'application/octet-stream',
+        'X-UPORTAL-Draft-Id': draftId
+      }
+    })
+  } catch (error) {
+    throw new Error(uploadErrorText(error, item.name))
+  }
+}
+
+async function cancelPublishDraft(draftId, reason) {
+  if (!draftId) return
+  await api.post(`/api/site/publish/draft/${encodeURIComponent(draftId)}/cancel`, { reason })
 }
 
 function dataUrlToFile(dataUrl, filename) {

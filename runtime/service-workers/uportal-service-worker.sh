@@ -127,6 +127,17 @@ file_size_sum() {
   find "$dir" -type f -printf '%s\n' 2>/dev/null | awk '{sum += $1} END {printf "%.0f", sum}'
 }
 
+published_files_size_sum() {
+  local meta_file="$1"
+  jq -r '
+    if (.published_files | type) == "array" then
+      [.published_files[]? | (.size // 0) | tonumber] | add // 0
+    else
+      empty
+    end
+  ' "$meta_file" 2>/dev/null || true
+}
+
 owner_ids_for_publication() {
   local publication_id="$1"
   local token="$2"
@@ -235,7 +246,12 @@ recalculate_owner_quota() {
     printf '%s\n' "$pub" >> "$tmp_pubs"
     links=$((links + 1))
     payload_dir="$STORAGE_DIR/$pub/$link_token"
-    used_bytes=$((used_bytes + $(file_size_sum "$payload_dir")))
+    logical_bytes="$(published_files_size_sum "$meta_file")"
+    if [ -n "$logical_bytes" ]; then
+      used_bytes=$((used_bytes + logical_bytes))
+    else
+      used_bytes=$((used_bytes + $(file_size_sum "$payload_dir")))
+    fi
   done < <(find "$META_DIR" -mindepth 2 -maxdepth 2 -type f -name '*.json' -print0 2>/dev/null)
 
   publications="$(sort -u "$tmp_pubs" 2>/dev/null | sed '/^$/d' | wc -l | tr -d ' ')"

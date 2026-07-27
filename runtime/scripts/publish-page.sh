@@ -93,6 +93,19 @@ safe_file_seg() {
   printf '%s' "${s:-file.bin}"
 }
 
+copy_or_link_payload() {
+  local src="$1"
+  local dst="$2"
+  local target
+  if [ -L "$src" ]; then
+    target="$(readlink "$src")"
+    rm -f -- "$dst"
+    ln -s -- "$target" "$dst"
+  else
+    cp -f "$src" "$dst"
+  fi
+}
+
 cleanup_inbox_after_publish() {
   case "$INBOX_DIR" in
     /data/files/inbox/"$publication_id"/"$token")
@@ -177,11 +190,11 @@ if [ -n "$image" ]; then
   fi
 
   if [ -f "$PAGE_DIR/$safe_image" ]; then
-    cp -f "$PAGE_DIR/$safe_image" "$PAYLOAD_DIR/$safe_image"
+    copy_or_link_payload "$PAGE_DIR/$safe_image" "$PAYLOAD_DIR/$safe_image"
   elif [ -f "$INBOX_DIR/$image" ]; then
-    cp -f "$INBOX_DIR/$image" "$PAYLOAD_DIR/$safe_image"
+    copy_or_link_payload "$INBOX_DIR/$image" "$PAYLOAD_DIR/$safe_image"
   elif [ -f "$INBOX_DIR/$safe_image" ]; then
-    cp -f "$INBOX_DIR/$safe_image" "$PAYLOAD_DIR/$safe_image"
+    copy_or_link_payload "$INBOX_DIR/$safe_image" "$PAYLOAD_DIR/$safe_image"
   fi
 fi
 
