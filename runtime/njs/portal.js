@@ -310,6 +310,8 @@ function publicAssetContentType(rel, bin) {
     if (lower.endsWith('.png')) return 'image/png';
     if (lower.endsWith('.gif')) return 'image/gif';
     if (lower.endsWith('.webp')) return 'image/webp';
+    if (lower.endsWith('.svg')) return 'image/svg+xml';
+    if (lower.endsWith('.svgz')) return 'image/svg+xml';
     return 'application/octet-stream';
 }
 
@@ -508,9 +510,13 @@ function safeRedirect(r, url) {
     r.return(302, url || cfg(r, 'uportal_fallback_url', 'http://localhost:8080/link-fallback'));
 }
 
-function statTtl(meta) {
+function statTtl(meta, event) {
     var v = parseInt(meta && meta.stat_ttl_sec, 10);
     if (!v || v < 5) return 15;
+    if (event === 'click' || event === 'download') {
+        var delay = parseInt(meta && meta.delay, 10);
+        if (!isNaN(delay) && delay > 0 && v <= delay) return delay + 30;
+    }
     return v;
 }
 
@@ -541,7 +547,7 @@ function statMd5(secret, expires, uri) {
 
 function signedTrackUrl(r, meta, event) {
     var uri = '/api/track/' + event + '/' + meta.publication_id + '/' + meta.token;
-    var expires = Math.floor(Date.now() / 1000) + statTtl(meta);
+    var expires = Math.floor(Date.now() / 1000) + statTtl(meta, event);
     var secret = cfg(r, 'uportal_stat_secret', 'CHANGE_ME_STAT_SECRET');
     var md5 = statMd5(secret, expires, uri);
     return uri + '?e=' + expires + '&md5=' + md5;
@@ -580,12 +586,12 @@ function requestHeader(r, name) {
     return String(r.headersIn[name] || '');
 }
 
-function pixelRequestQuery(r, meta, uid) {
+function runtimeEventRequestQuery(r, meta, uid, event) {
     var xff = requestHeader(r, 'X-Forwarded-For');
     var ip = requestHeader(r, 'X-Real-IP') || xff.split(',')[0].trim();
 
     return [
-        ['event', 'pixel'],
+        ['event', event],
         ['publication', meta.publication_id || ''],
         ['token', meta.token || ''],
         ['uid', uid || ''],
@@ -602,8 +608,8 @@ function pixelRequestQuery(r, meta, uid) {
     }).join('&');
 }
 
-async function trackPixelEvent(r, meta, uid) {
-    var trackArgs = pixelRequestQuery(r, meta, uid);
+async function trackRuntimeEvent(r, meta, uid, event) {
+    var trackArgs = runtimeEventRequestQuery(r, meta, uid, event);
 
     try {
         var reply = await r.subrequest('/__uportal_track_pixel_shhoook', {
@@ -611,11 +617,15 @@ async function trackPixelEvent(r, meta, uid) {
             args: trackArgs
         });
         if (!reply || reply.status < 200 || reply.status >= 300) {
-            r.error('pixel shhoook subrequest failed status=' + (reply ? reply.status : 'none'));
+            r.error(event + ' shhoook subrequest failed status=' + (reply ? reply.status : 'none'));
         }
     } catch (e) {
-        r.error('pixel shhoook subrequest failed: ' + e);
+        r.error(event + ' shhoook subrequest failed: ' + e);
     }
+}
+
+async function trackPixelEvent(r, meta, uid) {
+    return trackRuntimeEvent(r, meta, uid, 'pixel');
 }
 
 function addSetCookie(r, cookie) {
@@ -910,7 +920,6 @@ async function dispatchShort(r) {
         varsd.TOKEN = escAttr(meta.token);
         varsd.DELAY = String(delayd);
         varsd.OPEN_URL_JS = jsStr(signedOpenUrl(r, meta));
-        varsd.DOWNLOAD_URL_JS = jsStr(signedDownloadUrl(r, meta));
         addBrandVars(r, varsd);
         varsd.FILE_NAME = escHtml(meta.filename || meta.file || meta.token);
 
@@ -1003,7 +1012,7 @@ function signDownload(r) {
     r.return(200, JSON.stringify({ e: exp, st: st, file: file, filename: meta.filename || file }));
 }
 
-function sendFile(r) {
+async function sendFile(r) {
     var mf = r.uri.match(/^\/f\/([^/]+)\/([^/]+)\/([A-Za-z0-9._-]{1,200})$/);
     if (!mf) return r.return(404);
 
@@ -1030,6 +1039,9 @@ function sendFile(r) {
     var originalName = safeDownloadName(meta.filename || meta.file || file, file);
     var reqName = r.args.fn ? safeDownloadName(r.args.fn, originalName) : originalName;
 
+    var uid = ensureUidCookie(r);
+    await trackRuntimeEvent(r, meta, uid, 'download');
+
     return r.internalRedirect(
         '/_uportal_file/' +
         publicationId + '/' +
@@ -1039,7 +1051,7 @@ function sendFile(r) {
     );
 }
 
-function pageShell(r) {
+async function pageShell(r) {
     var pt = extractPubToken(r.uri, /^\/p\/([^/]+)\/([^/]+)\/$/);
     if (!pt) return r.return(404);
 
@@ -1065,20 +1077,17 @@ function pageShell(r) {
 
     var base = cfg(r, 'uportal_base_url', 'http://localhost:8080');
 
-    ensureUidCookie(r);
-
-    var pageViewUrl = signedPageViewUrl(r, meta);
-    var contentUrl = signedContentUrl(r, meta);
+    var uid = ensureUidCookie(r);
+    await trackRuntimeEvent(r, meta, uid, 'page_view');
 
     var lang = metaLang(r, meta);
     var vars = templateCaptionVars(lang);
     vars.__meta = meta;
     vars.TITLE = escHtml(meta.title || captions(lang).pageTitle);
     vars.DESCRIPTION = escHtml(meta.description || '');
+    vars.IMAGE = escAttr(publicAssetUrl(r, meta));
     vars.PUBLICATION_ID = escAttr(pt.publication_id);
     vars.TOKEN = escAttr(pt.token);
-    vars.PAGE_VIEW_URL_JS = jsStr(pageViewUrl);
-    vars.CONTENT_URL_JS = jsStr(contentUrl);
     vars.BASE_URL_JS = jsStr(base);
     vars.STYLE_URL = escAttr('/assets/' + pt.publication_id + '/' + pt.token + '/style.css');
 
@@ -1089,7 +1098,7 @@ function pageShell(r) {
     r.return(200, html);
 }
 
-function pageContent(r) {
+async function pageContent(r) {
     var pt = extractPubToken(r.uri, /^\/api\/page-content\/([^/]+)\/([^/]+)$/);
     if (!pt) return r.return(404);
 
@@ -1105,6 +1114,9 @@ function pageContent(r) {
 
     var html = readText(pageDir(r, pt.publication_id, pt.token) + '/content.html');
     if (html === null) return r.return(404);
+
+    var uid = ensureUidCookie(r);
+    await trackRuntimeEvent(r, meta, uid, 'content');
 
     r.headersOut['Content-Type'] = 'text/html; charset=utf-8';
     r.headersOut['Cache-Control'] = 'no-store';

@@ -37,7 +37,6 @@
     const PUB = "{{PUBLICATION_ID}}";
     const TOKEN = "{{TOKEN}}";
     const OPEN_URL = {{OPEN_URL_JS}};
-    const DOWNLOAD_URL = {{DOWNLOAD_URL_JS}};
     let s = parseInt("{{DELAY}}", 10) || 0;
 
     async function ping(url) {
@@ -61,7 +60,6 @@
     }
 
     async function startDownload() {
-      ping(DOWNLOAD_URL);
       const { e, st, file, filename } = await getSigned();
       const nice = encodeURIComponent(filename || file || TOKEN);
       window.location.href = `/f/${PUB}/${TOKEN}/${encodeURIComponent(file)}?e=${encodeURIComponent(e)}&st=${encodeURIComponent(st)}&fn=${nice}`;

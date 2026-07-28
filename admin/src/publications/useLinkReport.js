@@ -517,12 +517,20 @@ function getViewedEvents(row, events) {
 
   const type = getRowType(row)
   if (type === 'pixel') {
-    return events
-        .filter(event => ['pixel', 'open'].includes(getEventName(event)))
-        .sort((a, b) => new Date(getEventDate(a)) - new Date(getEventDate(b)))
+    return getFallbackEvents(events, ['pixel', 'open'])
+  }
+
+  if (type === 'redirect' || type === 'download') {
+    return getFallbackEvents(events, ['open'])
   }
 
   return collapsed
+}
+
+function getFallbackEvents(events, names) {
+  return events
+      .filter(event => names.includes(getEventName(event)))
+      .sort((a, b) => new Date(getEventDate(a)) - new Date(getEventDate(b)))
 }
 
 function getEventVisitorKey(event) {

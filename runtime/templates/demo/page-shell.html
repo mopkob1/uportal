@@ -9,6 +9,9 @@
   <meta property="og:type" content="website"/>
   <meta property="og:title" content="{{TITLE}}"/>
   <meta property="og:description" content="{{DESCRIPTION}}"/>
+  <meta property="og:image" content="{{IMAGE}}"/>
+  <meta name="twitter:card" content="summary_large_image"/>
+  <meta name="twitter:image" content="{{IMAGE}}"/>
   <meta name="robots" content="noindex,nofollow">
 
   <link rel="stylesheet" href="/shell.tailwind.css">
@@ -38,11 +41,9 @@
     </div>
   </main>
 
-  <script>
+    <script>
     const PUB = "{{PUBLICATION_ID}}";
     const TOKEN = "{{TOKEN}}";
-    const PAGE_VIEW_URL = {{PAGE_VIEW_URL_JS}};
-    const CONTENT_URL = {{CONTENT_URL_JS}};
 
     const elLoader = document.getElementById('loader');
     const elApp = document.getElementById('app');
@@ -61,17 +62,6 @@
       elApp.classList.remove('hidden');
     }
 
-    async function ping(url) {
-      if (!url) return;
-      try {
-        await fetch(url, {
-          method: 'POST',
-          credentials: 'same-origin',
-          cache: 'no-store'
-        });
-      } catch {}
-    }
-
     async function loadContent() {
       try {
         const r = await fetch(`/api/page-content/${PUB}/${TOKEN}`, {
@@ -86,15 +76,12 @@
 
         const html = await r.text();
         showContent(html);
-
-        await ping(CONTENT_URL);
       } catch (e) {
         showError();
       }
     }
 
     (async () => {
-      await ping(PAGE_VIEW_URL);
       await loadContent();
     })();
   </script>
