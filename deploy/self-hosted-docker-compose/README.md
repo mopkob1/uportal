@@ -1,143 +1,181 @@
 # UPORTAL Self-Hosted Docker Compose Deployment
 
-This mode keeps TLS on the host nginx. The UPORTAL container listens on plain
-HTTP and the host nginx proxies one HTTPS virtual host to it.
+This deployment mode runs UPORTAL Community runtime in Docker Compose and keeps
+TLS on the host nginx. The container listens on plain HTTP, usually on
+`127.0.0.1:18080`, and host nginx proxies the public HTTPS virtual host to it.
 
-It does not replace the existing host-install runtime files.
+All commands below assume a fresh install into `/opt/uportal`.
 
 ## Files
 
 All files for this deployment mode are in `deploy/self-hosted-docker-compose/`.
 
-- `../../VERSION` - canonical UPORTAL version used by the generated plugin XPI.
-- `docker-compose.yml` - compose stack.
+- `docker-compose.yml` - UPORTAL runtime and Community service worker.
 - `.env.example` - example compose environment.
 - `docker/uportal/` - container Dockerfile, entrypoint and nginx config.
-- `nginx/uportal-external-proxy.conf` - host nginx example.
+- `nginx/uportal-external-proxy.conf` - minimal host nginx example.
+- `nginx/uportal-host-vhost.conf` - full host nginx example with UPORTAL runtime,
+  site-backend, auth-gateway and Astro site routes.
 
-Run the commands below from this directory:
+## Install
+
+Install Docker, Docker Compose plugin, git and host nginx first. The host nginx
+must already have a valid certificate for your domain.
 
 ```bash
-cd deploy/self-hosted-docker-compose
-```
-
-## Configure
-
-```bash
+cd /opt
+git clone https://github.com/mopkob1/uportal.git
+cd /opt/uportal/deploy/self-hosted-docker-compose
 cp .env.example .env
 ```
 
-Edit:
+Edit `.env`:
 
 ```env
-UPORTAL_DOMAIN=links.example.com
-UPORTAL_BASE_URL=https://links.example.com
-UPORTAL_SHORT_BASE_URL=https://go.example.com
+UPORTAL_DOMAIN=u.example.com
+UPORTAL_BASE_URL=https://u.example.com
+UPORTAL_SHORT_BASE_URL=https://u.example.com
 UPORTAL_HTTP_PORT=18080
 UPORTAL_BIND_ADDR=127.0.0.1
 UPORTAL_DATA_DIR=./data/files
-UPORTAL_UI_LANG=en
+UPORTAL_UI_LANG=ru
 ```
 
-`UPORTAL_PLUGIN_DEFAULT_BASE_URL` controls the default server URL baked into the
-generated XPI. If omitted, it uses `UPORTAL_BASE_URL`.
+Optional values:
 
-`UPORTAL_SHORT_BASE_URL` controls generated short links (`/s/<id>`) and pixel
-links. If omitted, short links use `UPORTAL_BASE_URL`.
+```env
+UPORTAL_PLUGIN_DEFAULT_BASE_URL=https://u.example.com
+UPORTAL_PUBLIC_BASE_URL=https://u.example.com
+UPORTAL_FALLBACK_URL=https://u.example.com/link-fallback
+UPORTAL_N8N_URL=
+```
 
-`UPORTAL_DATA_DIR` is a host directory mounted to `/data/files` in the
-container. The default `./data/files` keeps runtime data next to this deployment
-kit and is ignored by git.
+Leave secret values empty for the first run unless you need deterministic
+secrets:
 
-`UPORTAL_UI_LANG` controls the default language baked into the admin UI and the
-generated plugin XPI. Supported values:
+```env
+UPORTAL_ADMIN_SECRET=
+UPORTAL_DOWNLOAD_SALT=
+UPORTAL_STAT_SECRET=
+UPORTAL_PAGE_SECRET=
+UPORTAL_INTERNAL_KEY=
+```
 
-- `en`
-- `ru`
-- `es`
-
-Changing this value requires rebuilding the image:
+Start:
 
 ```bash
 docker compose --env-file .env up -d --build
 ```
 
-## Build And Run
-
-```bash
-docker compose --env-file .env up -d --build
-```
-
-The container exposes HTTP on `127.0.0.1:18080` by default. All data is stored in
-`UPORTAL_DATA_DIR` on the host and mounted under `/data/files` in the container.
-
-Useful paths inside `./data/files` and inside the container:
-
-- `/data/files/uportal/meta`
-- `/data/files/uportal/storage`
-- `/data/files/uportal/events`
-- `/data/files/uportal/index`
-- `/data/files/uportal/build/admin`
-- `/data/files/uportal/build/plugin/uportal-link-inserter.xpi`
-- `/data/files/inbox`
-
-On first start the container prints bootstrap credentials to logs:
+All runtime data is stored in `UPORTAL_DATA_DIR` on the host and mounted as
+`/data/files` in the container. With the default `.env`, that is:
 
 ```text
-admin token: ...
-first user token: ...
-plugin xpi download: https://links.example.com/s/...
+/opt/uportal/deploy/self-hosted-docker-compose/data/files
+```
+
+Useful paths:
+
+- `data/files/uportal/meta`
+- `data/files/uportal/storage`
+- `data/files/uportal/events`
+- `data/files/uportal/index`
+- `data/files/uportal/build/admin`
+- `data/files/uportal/build/plugin/uportal-link-inserter.xpi`
+- `data/files/inbox`
+
+On first start the container prints bootstrap credentials:
+
+```bash
+docker compose --env-file .env logs uportal | grep -E 'admin token:|first user token:|plugin xpi download:'
 ```
 
 The same values are saved in:
 
 ```text
-./data/files/uportal/config/first-run-tokens.env
+data/files/uportal/config/first-run-tokens.env
 ```
 
-Use `plugin xpi download` to install the generated Thunderbird XPI for the
-deployment.
+## Update From Git
 
-The first user also gets a publication with the Thunderbird plugin download
-link. It is visible in the publication list for that user.
+Example destructive refresh used for test hosts where `/opt/uportal` can be
+replaced. This removes the repository checkout. Runtime data is preserved only
+if it lives outside `/opt/uportal` or you back it up first.
+
+```bash
+#!/usr/bin/env bash
+set -euo pipefail
+
+cd /opt/uportal/deploy/self-hosted-docker-compose
+docker compose --env-file .env down
+
+cd /opt
+rm -rf /opt/uportal
+git clone https://github.com/mopkob1/uportal.git
+
+cd /opt/uportal/deploy/self-hosted-docker-compose
+cp /opt/uportal.self ./.env
+
+docker compose --env-file .env up -d --build
+
+docker compose --env-file .env logs
+```
+
+For production, prefer keeping `UPORTAL_DATA_DIR` outside the repository, for
+example `/opt/uportal-data/files`, so `rm -rf /opt/uportal` cannot remove live
+data.
 
 ## Host Nginx
 
-Install the sample vhost:
+The host nginx owns certificates. The container does not terminate TLS.
+
+Minimal runtime-only install:
 
 ```bash
-sudo cp nginx/uportal-external-proxy.conf /etc/nginx/sites-available/uportal-external-proxy.conf
-sudo ln -sfn /etc/nginx/sites-available/uportal-external-proxy.conf /etc/nginx/sites-enabled/uportal-external-proxy.conf
+sudo cp nginx/uportal-external-proxy.conf /etc/nginx/sites-available/uportal.conf
+sudo ln -sfn /etc/nginx/sites-available/uportal.conf /etc/nginx/sites-enabled/uportal.conf
 sudo nginx -t
 sudo systemctl reload nginx
 ```
 
-Replace `links.example.com` and `127.0.0.1:18080` in the sample when needed.
+Edit `server_name`, certificate paths and `proxy_pass` target before enabling
+the file.
 
-The host nginx owns certificates. The container does not terminate TLS.
+Single-domain commercial/website install:
+
+```bash
+sudo cp nginx/uportal-host-vhost.conf /etc/nginx/sites-available/u.example.com
+sudo ln -sfn /etc/nginx/sites-available/u.example.com /etc/nginx/sites-enabled/u.example.com
+sudo nginx -t
+sudo systemctl reload nginx
+```
+
+This full example expects upstreams such as `uportal_runtime`,
+`uportal_site_backend`, `uportal_auth_gateway` and `uportal_astro_site` to be
+defined in `/etc/nginx/conf.d/*.conf`. Adjust addresses to your host ports.
 
 ## Tokens
 
-The first user token is generated automatically on the first container start.
-Use it as `X-User-Token` in:
+Open the admin UI:
 
 ```text
-https://links.example.com/ui/
+https://u.example.com/ui/
 ```
 
-If you want to publish from the first user, remember that UPORTAL binds
-publishing to the selected client instance. After the first failed publish
-attempt from the web UI or plugin, open the user settings and switch the active
-publishing client to the client you are actually using. Alternatively, create a
-new user token and publish from that user.
+Use the first user token from the logs or from:
 
-To view the generated values later:
-
-```bash
-docker compose --env-file .env logs uportal | grep -E 'admin token:|first user token:|plugin xpi download:'
-
-cat ./data/files/uportal/config/first-run-tokens.env
+```text
+data/files/uportal/config/first-run-tokens.env
 ```
+
+The generated Thunderbird XPI is available from:
+
+```text
+data/files/uportal/build/plugin/uportal-link-inserter.xpi
+```
+
+The first user also gets a publication with the Thunderbird plugin download
+link. It is visible in the publication list for that user.
 
 To create another user token manually:
 
@@ -153,28 +191,25 @@ PAYLOAD_B64="$(printf '%s' '{"user":"admin","user_id":"admin","scope":["admin","
 If restoring existing data into the volume:
 
 ```bash
-docker compose --env-file .env exec uportal \
-  uportal-events-index-rebuild.sh
-
-docker compose --env-file .env exec uportal \
-  uportal-links-index-rebuild.sh
+docker compose --env-file .env exec uportal uportal-events-index-rebuild.sh
+docker compose --env-file .env exec uportal uportal-links-index-rebuild.sh
 ```
 
 ## Stop And Remove
 
-Stop the container without deleting data:
+Stop containers without deleting data:
 
 ```bash
 docker compose --env-file .env stop
 ```
 
-Start it again:
+Start again:
 
 ```bash
 docker compose --env-file .env up -d
 ```
 
-Remove the container and network without deleting data:
+Remove containers and network without deleting data:
 
 ```bash
 docker compose --env-file .env down
@@ -188,9 +223,36 @@ sudo rm -rf ./data/files
 
 ## Backup
 
-Back up `UPORTAL_DATA_DIR` on the host, for example `./data/files`.
+Back up `UPORTAL_DATA_DIR` on the host, for example:
+
+```text
+/opt/uportal/deploy/self-hosted-docker-compose/data/files
+```
 
 ## Troubleshooting
+
+### BuildKit parent snapshot does not exist
+
+If `docker compose up -d --build` fails with an error like:
+
+```text
+failed to prepare extraction snapshot ... parent snapshot ... does not exist
+```
+
+clean only Docker build cache and retry:
+
+```bash
+docker builder prune -af
+docker compose --env-file .env up -d --build
+```
+
+If it still fails:
+
+```bash
+systemctl restart docker
+docker compose --env-file .env build --no-cache
+docker compose --env-file .env up -d
+```
 
 ### Upload returns 500
 
@@ -198,14 +260,13 @@ Redirect, download and page publications upload files to `/data/files/inbox`
 before publishing. Pixel publications do not upload files, so they can keep
 working when upload is broken.
 
-For an already running container, check:
+Check:
 
 ```bash
-docker compose --env-file .env exec uportal \
-  ls -ld /data/files/inbox
+docker compose --env-file .env exec uportal ls -ld /data/files/inbox
 ```
 
-The inbox must be writable by the nginx worker. Temporary fix without rebuild:
+Temporary fix without rebuild:
 
 ```bash
 docker compose --env-file .env exec uportal \
