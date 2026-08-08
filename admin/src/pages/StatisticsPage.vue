@@ -795,7 +795,7 @@ function formatDeviceGuessSource(value) {
 
 function getShortUrl(row) {
   const meta = row.meta || {}
-  const short = row.short_url || row.shortlink || row.short || row.url || meta.short_url || meta.shortlink || meta.short || meta.url || ''
+  const short = row.short_url || row.shortlink || meta.short_url || meta.shortlink || row.short || row.url || meta.short || meta.url || ''
   if (!short) {
     const token = row.token || ''
     if (!token) return ''

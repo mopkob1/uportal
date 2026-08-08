@@ -47,7 +47,7 @@ export function extractPaged(payload, fallback = {}) {
 }
 
 export function normalizeLink(raw) {
-  const shortValue = raw.short || raw.short_url || raw.url || raw.href || ''
+  const shortValue = raw.short_url || raw.shortlink || raw.short || raw.url || raw.href || ''
   return {
     id: `${raw.publication_id || raw.publication || ''}:${raw.token || ''}`,
     publication_id: raw.publication_id || raw.publication || '',

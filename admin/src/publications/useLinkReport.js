@@ -683,7 +683,7 @@ function formatClientDateTime(value) {
 }
 
 function buildShortMarkdown(row) {
-  const short = row.short || row.short_url || ''
+  const short = row.short_url || row.shortlink || row.raw?.short_url || row.raw?.shortlink || row.meta?.short_url || row.meta?.shortlink || row.short || row.raw?.short || row.meta?.short || ''
   const anchor = row.link || row.raw?.link || row.raw?.meta?.link || getLatestActionDetail(row, 'link') || row.anchor || row.title || short
   const text = buildInlineText([
     getRowPre(row),

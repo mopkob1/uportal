@@ -1056,9 +1056,9 @@ function getSourceUrl(row) {
 }
 
 function getShortUrl(row) {
-  const short = row.short_url || row.shortlink || row.short || row.url || row.raw?.short_url || row.raw?.shortlink || row.raw?.short || row.raw?.url || ''
+  const short = row.short_url || row.shortlink || row.raw?.short_url || row.raw?.shortlink || row.short || row.url || row.raw?.short || row.raw?.url || ''
   if (!short) return ''
-  if (/^https?:\/\//.test(short)) return normalizePublicUrl(short)
+  if (/^https?:\/\//.test(short)) return short
 
   const serverUrl = normalizeServerUrl(store.state.serverUrl)
   return `${serverUrl}/s/${short}`
