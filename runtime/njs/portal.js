@@ -250,17 +250,27 @@ function publicAssetUrl(r, meta) {
         safeSeg(meta.image, 'cover.png');
 }
 
+function imageContentTypeFromName(name) {
+    var lower = String(name || '').toLowerCase();
+    if (lower.endsWith('.jpg') || lower.endsWith('.jpeg')) return 'image/jpeg';
+    if (lower.endsWith('.png')) return 'image/png';
+    if (lower.endsWith('.webp')) return 'image/webp';
+    if (lower.endsWith('.gif')) return 'image/gif';
+    return 'image/png';
+}
+
 function renderShortPreview(r, meta, fallbackTitle) {
     var lang = metaLang(r, meta);
     var image = publicAssetUrl(r, meta);
-    var fallbackImage = !meta || !meta.image;
     var title = linkPreviewTitle(meta, fallbackTitle);
     var description = linkPreviewDescription(meta);
-    var imageMeta = fallbackImage
-        ? '<meta property="og:image:type" content="image/png"/>' +
-          '<meta property="og:image:width" content="1200"/>' +
-          '<meta property="og:image:height" content="630"/>'
-        : '';
+    var base = cfg(r, 'uportal_short_base_url', cfg(r, 'uportal_base_url', 'http://localhost:8080'));
+    var canonicalUrl = meta && meta.short_id ? base + '/s/' + meta.short_id : base + r.uri;
+    var imageMeta =
+        '<meta property="og:image:secure_url" content="' + escAttr(image) + '"/>' +
+        '<meta property="og:image:type" content="' + escAttr(imageContentTypeFromName(meta && meta.image)) + '"/>' +
+        '<meta property="og:image:width" content="1200"/>' +
+        '<meta property="og:image:height" content="630"/>';
 
     r.headersOut['Content-Type'] = 'text/html; charset=utf-8';
     r.headersOut['Cache-Control'] = 'no-store';
@@ -273,7 +283,10 @@ function renderShortPreview(r, meta, fallbackTitle) {
         '<meta property="og:description" content="' + escAttr(description) + '"/>' +
         '<meta property="og:image" content="' + escAttr(image) + '"/>' +
         imageMeta +
+        '<meta property="og:url" content="' + escAttr(canonicalUrl) + '"/>' +
         '<meta name="twitter:card" content="summary_large_image"/>' +
+        '<meta name="twitter:title" content="' + escAttr(title) + '"/>' +
+        '<meta name="twitter:description" content="' + escAttr(description) + '"/>' +
         '<meta name="twitter:image" content="' + escAttr(image) + '"/>' +
         '</head><body></body></html>');
 }
