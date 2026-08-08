@@ -16,6 +16,7 @@ else
   source "$SCRIPT_DIR/uportal-config.sh"
 fi
 PUBLIC_BASE_URL="$(uportal_public_base_url)"
+SHORT_BASE_URL="$(uportal_short_base_url)"
 
 safe_token_re='^[A-Za-z0-9._-]{16,128}$'
 safe_user_id_re='^[A-Za-z0-9._-]{1,128}$'
@@ -91,7 +92,7 @@ while IFS= read -r event_file; do
 
   if [[ "$NEEDS_ENRICH" = "1" && "$EVENT_PUB" =~ $safe_part_re && "$EVENT_TOKEN" =~ $safe_part_re && -f "$EVENT_META_FILE" ]]; then
     TMP_EVENT="$(mktemp)"
-    if jq --arg public_base_url "$PUBLIC_BASE_URL" --slurpfile current_meta "$EVENT_META_FILE" '
+    if jq --arg public_base_url "$PUBLIC_BASE_URL" --arg short_base_url "$SHORT_BASE_URL" --slurpfile current_meta "$EVENT_META_FILE" '
       .meta = ((.meta // {}) + {
         pre: ($current_meta[0].pre // (.meta.pre // "")),
         link: ($current_meta[0].link // (.meta.link // "")),
@@ -121,7 +122,7 @@ while IFS= read -r event_file; do
         image: ($current_meta[0].image // (.meta.image // "")),
         preview_url: (
           if (($current_meta[0].image // (.meta.image // "")) != "")
-          then ($public_base_url + "/assets-public/" + (.publication // .publication_id // "") + "/" + (.token // "") + "/" + ($current_meta[0].image // (.meta.image // "")))
+          then ($short_base_url + "/assets-public/" + (.publication // .publication_id // "") + "/" + (.token // "") + "/" + ($current_meta[0].image // (.meta.image // "")))
           else (.meta.preview_url // "")
           end
         )

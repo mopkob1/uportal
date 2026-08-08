@@ -41,7 +41,7 @@ BASE_URL="$(normalize_base_url "${UPORTAL_PUBLIC_BASE_URL:-${UPORTAL_BASE_URL:-}
 SHORT_BASE_URL="$(normalize_base_url "${UPORTAL_SHORT_BASE_URL:-$BASE_URL}")"
 FALLBACK_URL="${UPORTAL_FALLBACK_URL:-}"
 if [ -z "$FALLBACK_URL" ] || has_compose_template_garbage "$FALLBACK_URL"; then
-  FALLBACK_URL="$BASE_URL/link-fallback"
+  FALLBACK_URL="$SHORT_BASE_URL/link-fallback"
 else
   FALLBACK_URL="${FALLBACK_URL%/}"
 fi

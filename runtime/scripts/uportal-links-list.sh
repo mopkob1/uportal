@@ -262,7 +262,7 @@ find "$SEARCH_ROOT" -type f -name '*.json' -print0 \
 
     if [ -n "$publication_id" ] && [ -n "$token" ] && [ -n "$image" ]; then
       if [ -f "$STORAGE_ROOT/$publication_id/$token/payload/$image" ] || [ -f "$INBOX_ROOT/$publication_id/$token/$image" ]; then
-        preview_url="$BASE_URL/assets-public/$publication_id/$token/$image"
+        preview_url="$SHORT_BASE_URL/assets-public/$publication_id/$token/$image"
       fi
     fi
 

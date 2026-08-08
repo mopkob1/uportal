@@ -15,7 +15,7 @@
     "mails": "[]",
     "fresh_until": "-1",
     "remaining_clicks": "-1",
-    "fallback_url": "__UPORTAL_BASE_URL__/link-fallback",
+    "fallback_url": "__UPORTAL_FALLBACK_URL__",
     "image": "",
     "title": "",
     "description": "",

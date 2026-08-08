@@ -29,6 +29,7 @@ else
   source "$(dirname "$0")/uportal-config.sh"
 fi
 PUBLIC_BASE_URL="$(uportal_public_base_url)"
+SHORT_BASE_URL="$(uportal_short_base_url)"
 
 TS="$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
 
@@ -265,6 +266,7 @@ jq -n \
   --arg created_by "$CREATED_BY" \
   --arg published_at "$PUBLISHED_AT" \
   --arg public_base_url "$PUBLIC_BASE_URL" \
+  --arg short_base_url "$SHORT_BASE_URL" \
   --argjson mails "$MAILS" \
   '{
     ts: $ts,
@@ -324,7 +326,7 @@ jq -n \
       image: $image,
       preview_url: (
         if ($image != "" and $publication != "" and $token != "")
-        then ($public_base_url + "/assets-public/" + $publication + "/" + $token + "/" + $image)
+        then ($short_base_url + "/assets-public/" + $publication + "/" + $token + "/" + $image)
         else ""
         end
       ),

@@ -34,7 +34,7 @@ Edit `.env`:
 ```env
 UPORTAL_DOMAIN=u.example.com
 UPORTAL_BASE_URL=https://u.example.com
-UPORTAL_SHORT_BASE_URL=https://u.example.com
+UPORTAL_SHORT_BASE_URL=https://go.example.com
 UPORTAL_HTTP_PORT=18080
 UPORTAL_BIND_ADDR=127.0.0.1
 UPORTAL_DATA_DIR=./data/files
@@ -46,7 +46,7 @@ Optional values:
 ```env
 UPORTAL_PLUGIN_DEFAULT_BASE_URL=https://u.example.com
 UPORTAL_PUBLIC_BASE_URL=https://u.example.com
-UPORTAL_FALLBACK_URL=https://u.example.com/link-fallback
+UPORTAL_FALLBACK_URL=https://go.example.com/link-fallback
 UPORTAL_N8N_URL=
 ```
 

@@ -39,7 +39,7 @@ uportal_fallback_url() {
     return 0
   fi
 
-  printf '%s/link-fallback' "$(uportal_public_base_url)"
+  printf '%s/link-fallback' "$(uportal_short_base_url)"
 }
 
 uportal_load_config
