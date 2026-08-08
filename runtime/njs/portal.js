@@ -265,7 +265,8 @@ function renderShortPreview(r, meta, fallbackTitle) {
     var title = linkPreviewTitle(meta, fallbackTitle);
     var description = linkPreviewDescription(meta);
     var base = cfg(r, 'uportal_short_base_url', cfg(r, 'uportal_base_url', 'http://localhost:8080'));
-    var canonicalUrl = meta && meta.short_id ? base + '/s/' + meta.short_id : base + r.uri;
+    var requestUri = String((r.variables && r.variables.request_uri) || r.uri || '');
+    var canonicalUrl = base + requestUri;
     var imageMeta =
         '<meta property="og:image:secure_url" content="' + escAttr(image) + '"/>' +
         '<meta property="og:image:type" content="' + escAttr(imageContentTypeFromName(meta && meta.image)) + '"/>' +
