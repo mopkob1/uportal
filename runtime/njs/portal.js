@@ -229,6 +229,18 @@ function wantsHtmlPreview(r) {
     return accept.indexOf('image/') < 0;
 }
 
+function isLinkPreviewCrawler(r) {
+    var ua = String(r.headersIn['User-Agent'] || r.headersIn['user-agent'] || '').toLowerCase();
+    return ua.indexOf('telegrambot') >= 0 ||
+        ua.indexOf('whatsapp') >= 0 ||
+        ua.indexOf('facebookexternalhit') >= 0 ||
+        ua.indexOf('twitterbot') >= 0 ||
+        ua.indexOf('slackbot') >= 0 ||
+        ua.indexOf('discordbot') >= 0 ||
+        ua.indexOf('linkedinbot') >= 0 ||
+        ua.indexOf('vkshare') >= 0;
+}
+
 function publicAssetUrl(r, meta) {
     var base = cfg(r, 'uportal_base_url', 'http://localhost:8080');
     if (!meta || !meta.image) return base + '/assets-public/__uportal__/cover/uportal-og-cover.png';
@@ -842,6 +854,10 @@ async function dispatchShort(r) {
 
     if (!isPasswordAuthorized(r, meta)) {
         return requirePasswordPage(r, meta);
+    }
+
+    if (isLinkPreviewCrawler(r)) {
+        return renderShortPreview(r, meta, captions(metaLang(r, meta)).pageTitle);
     }
 
     if (!enforceSticky(r, meta)) {
