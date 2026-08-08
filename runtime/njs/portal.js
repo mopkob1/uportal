@@ -855,6 +855,10 @@ async function dispatchShort(r) {
     meta.token = meta.token || ref.token;
     meta.short_id = meta.short_id || shortId;
 
+    if (isLinkPreviewCrawler(r)) {
+        return renderShortPreview(r, meta, captions(metaLang(r, meta)).pageTitle);
+    }
+
     var uid = ensureUidCookie(r);
 
     if (meta.type === 'pixel') {
@@ -868,10 +872,6 @@ async function dispatchShort(r) {
 
     if (!isPasswordAuthorized(r, meta)) {
         return requirePasswordPage(r, meta);
-    }
-
-    if (isLinkPreviewCrawler(r)) {
-        return renderShortPreview(r, meta, captions(metaLang(r, meta)).pageTitle);
     }
 
     if (!enforceSticky(r, meta)) {
