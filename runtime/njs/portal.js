@@ -242,7 +242,7 @@ function isLinkPreviewCrawler(r) {
 }
 
 function publicAssetUrl(r, meta) {
-    var base = cfg(r, 'uportal_base_url', 'http://localhost:8080');
+    var base = cfg(r, 'uportal_short_base_url', cfg(r, 'uportal_base_url', 'http://localhost:8080'));
     if (!meta || !meta.image) return base + '/assets-public/__uportal__/cover/uportal-og-cover.png';
     return base + '/assets-public/' +
         meta.publication_id + '/' +
