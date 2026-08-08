@@ -18,11 +18,19 @@
   <link rel="stylesheet" href="/md.css">
   <base href="/assets/{{PUBLICATION_ID}}/{{TOKEN}}/">
   <link rel="stylesheet" href="{{STYLE_URL}}" onerror="this.remove()">
+  <style>
+    .brand-logo{position:absolute;top:18px;right:20px;display:block;z-index:2}
+    .brand-logo svg{display:block;width:128px;height:auto}
+    .page-shell-card{position:relative}
+    .page-shell-card .brand-spacer{height:48px}
+  </style>
 </head>
 <body class="page-shell">
 
   <main class="page-shell-wrap">
     <div class="page-shell-card">
+      <a class="brand-logo" href="{{UPORTAL_GITHUB_URL}}" target="_blank" rel="noopener noreferrer" aria-label="UPORTAL">{{UPORTAL_LOGO_SVG}}</a>
+      <div class="brand-spacer" aria-hidden="true"></div>
       <div style="font-size:42px;line-height:1.05;font-weight:800;letter-spacing:0;color:#dc2626;margin-bottom:24px;text-align:center;">
         DEMO TEMPLATE
       </div>

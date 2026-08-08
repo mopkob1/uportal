@@ -664,6 +664,7 @@ escaped_short_base_regex="$(escape_sed_re "$SHORT_BASE_URL")"
 find /etc/nginx/conf.d /etc/shhoook /usr/local/bin "$UPORTAL_ROOT/templates" "$UPORTAL_ROOT/build/admin" -type f -exec sed -i \
   -e "s|__UPORTAL_BASE_URL__|$BASE_URL|g" \
   -e "s|__UPORTAL_SHORT_BASE_URL__|$SHORT_BASE_URL|g" \
+  -e "s|__UPORTAL_FALLBACK_URL__|$FALLBACK_URL|g" \
   -e "s|__UPORTAL_DOMAIN__|$DOMAIN|g" \
   -e "s|__UPORTAL_BASE_URL_REGEX__|$escaped_base_regex|g" \
   -e "s|__UPORTAL_SHORT_BASE_URL_REGEX__|$escaped_short_base_regex|g" \

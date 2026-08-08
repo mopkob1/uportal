@@ -1083,6 +1083,7 @@ async function pageShell(r) {
     var lang = metaLang(r, meta);
     var vars = templateCaptionVars(lang);
     vars.__meta = meta;
+    addBrandVars(r, vars);
     vars.TITLE = escHtml(meta.title || captions(lang).pageTitle);
     vars.DESCRIPTION = escHtml(meta.description || '');
     vars.IMAGE = escAttr(publicAssetUrl(r, meta));
