@@ -272,3 +272,22 @@ Temporary fix without rebuild:
 docker compose --env-file .env exec uportal \
   sh -lc 'chown -R www-data:www-data /data/files/inbox && chmod 775 /data/files/inbox'
 ```
+
+### Sticky links return fallback
+
+Sticky links store the first visitor binding under `/data/files/uportal/sticky`.
+If nginx cannot write there, every sticky link falls back before the target page
+is rendered.
+
+Check:
+
+```bash
+docker compose --env-file .env exec uportal ls -ld /data/files/uportal/sticky
+```
+
+Temporary fix without rebuild:
+
+```bash
+docker compose --env-file .env exec uportal \
+  sh -lc 'mkdir -p /data/files/uportal/sticky && chown -R www-data:www-data /data/files/uportal/sticky && chmod 775 /data/files/uportal/sticky'
+```
