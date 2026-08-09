@@ -52,6 +52,41 @@ json_error() {
   exit 1
 }
 
+iso_is_expired() {
+  local value="${1:-}"
+  local epoch
+  [ -n "$value" ] && [ "$value" != "null" ] || return 1
+  epoch="$(date -d "$value" +%s 2>/dev/null || true)"
+  [ -n "$epoch" ] || return 1
+  [ "$epoch" -le "$(date +%s)" ]
+}
+
+notify_window_expired() {
+  local meta_file="$1"
+  local disable_at
+
+  jq -e '(.commercial_free_telegram.auto_enabled // false) == true' "$meta_file" >/dev/null 2>&1 || return 1
+  disable_at="$(jq -r '.commercial_free_telegram.disable_at // ""' "$meta_file" 2>/dev/null || true)"
+  iso_is_expired "$disable_at"
+}
+
+token_access_expired() {
+  local token_file="$1"
+  local expires_at
+
+  [ -f "$token_file" ] || return 1
+  expires_at="$(jq -r '
+    .expires_at
+    // .site.expires_at
+    // .site.subscription.access_ends_at
+    // .site.subscription.ends_at
+    // .site.subscription.current_period_ends_at
+    // .tariff_ends_at
+    // ""
+  ' "$token_file" 2>/dev/null || true)"
+  iso_is_expired "$expires_at"
+}
+
 [[ "$EVENT" =~ ^(open|click|page_view|content|pixel|download)$ ]] || json_skip "unsupported_event"
 [[ "$PUB" =~ ^[A-Za-z0-9._-]{1,128}$ ]] || json_skip "bad_publication"
 [[ "$TOKEN" =~ ^[A-Za-z0-9._-]{1,128}$ ]] || json_skip "bad_token"
@@ -106,6 +141,14 @@ if [ -n "$actor" ] && [ -d "$TOKEN_ROOT" ]; then
       break
     fi
   done < <(find "$TOKEN_ROOT" -maxdepth 1 -type f -name '*.json' -print0 2>/dev/null)
+fi
+
+if notify_window_expired "$META_FILE"; then
+  json_skip "telegram_notify_window_expired"
+fi
+
+if [ -n "$owner_file" ] && token_access_expired "$owner_file"; then
+  json_skip "telegram_notify_tariff_expired"
 fi
 
 owner_json="$(mktemp)"

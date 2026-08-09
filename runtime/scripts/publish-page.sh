@@ -315,6 +315,8 @@ append_status_history "$META_FILE" "$status" "user" "published"
 
 append_action "$META_FILE" "page" "$actor" "$short"
 
+apply_publish_telegram_notify_policy "$META_FILE"
+
 if command -v uportal-links-index-upsert.sh >/dev/null 2>&1; then
   uportal-links-index-upsert.sh upsert "$publication_id" "$token" >/dev/null || true
 fi

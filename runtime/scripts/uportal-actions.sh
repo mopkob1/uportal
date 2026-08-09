@@ -190,6 +190,135 @@ refresh_link_index() {
   fi
 }
 
+apply_publish_telegram_notify_policy() {
+  local meta_file="$1"
+  local token_root="${UPORTAL_TOKEN_ROOT:-${UPORTAL_BASE:-/data/files/uportal}/user-tokens}"
+  local policy_file="${UPORTAL_FREE_TELEGRAM_NOTIFY_POLICY_FILE:-${UPORTAL_SERVICE_WORKER_CONFIG_DIR:-${UPORTAL_BASE:-/data/files/uportal}/site/service-worker-config}/free-telegram-notify-policy.json}"
+  local owner_ids_json
+  local token_file=""
+  local candidate
+  local token_name
+  local plan
+  local published_at
+  local published_epoch
+  local disable_seconds
+  local disable_at
+  local now
+  local tmp
+
+  [ -f "$meta_file" ] || return 0
+  [ -f "$policy_file" ] || return 0
+  jq -e '(.enabled // true) == true' "$policy_file" >/dev/null 2>&1 || return 0
+  jq -e '(.commercial_free_telegram | type) == "object"' "$meta_file" >/dev/null 2>&1 && return 0
+  jq -e '.telegram_notify == true' "$meta_file" >/dev/null 2>&1 && return 0
+
+  owner_ids_json="$(jq -c '
+    [
+      (.created_by // empty),
+      (.owner // empty),
+      (.actions // [] | .[]? | .actor // empty)
+    ]
+    | map(tostring)
+    | map(select(. != ""))
+    | unique
+  ' "$meta_file" 2>/dev/null || printf '[]')"
+
+  [ "$(printf '%s' "$owner_ids_json" | jq 'length' 2>/dev/null || printf 0)" -gt 0 ] || return 0
+  [ -d "$token_root" ] || return 0
+
+  while IFS= read -r -d '' candidate; do
+    token_name="$(basename "$candidate" .json)"
+    if jq -e --arg token_name "$token_name" --argjson owner_ids "$owner_ids_json" '
+      [
+        $token_name,
+        (.user_id // empty),
+        (.site.account.id // empty),
+        (.user // empty),
+        (.site.account.displayName // empty)
+      ]
+      | map(tostring)
+      | any(. as $id | ($owner_ids | index($id)))
+    ' "$candidate" >/dev/null 2>&1; then
+      token_file="$candidate"
+      break
+    fi
+  done < <(find "$token_root" -maxdepth 1 -type f -name '*.json' -print0 2>/dev/null)
+
+  [ -n "$token_file" ] || return 0
+
+  plan="$(jq -r '
+    .site.subscription.plan
+    // .site.plan
+    // .plan
+    // .tariff
+    // "free"
+    | tostring
+    | ascii_downcase
+  ' "$token_file" 2>/dev/null || printf 'free')"
+
+  jq -e --arg plan "$plan" '
+    (.plans // ["free"])
+    | map(tostring | ascii_downcase)
+    | index($plan) != null
+  ' "$policy_file" >/dev/null 2>&1 || return 0
+
+  jq -e '
+    (.site.bindings.telegram == true)
+    or ((.site.account.telegram // .site.telegram // .telegram // {}) as $tg
+      | (($tg.chat_id // "") != "")
+        or (($tg.user_id // "") != "")
+        or (($tg.username // "") != ""))
+  ' "$token_file" >/dev/null 2>&1 || return 0
+
+  published_at="$(jq -r '
+    (.actions // [])
+    | map(select((.type // "") == "redirect" or (.type // "") == "page" or (.type // "") == "download" or (.type // "") == "pixel"))
+    | .[0].date // empty
+  ' "$meta_file" 2>/dev/null || true)"
+  [ -n "$published_at" ] || published_at="$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
+
+  published_epoch="$(date -d "$published_at" +%s 2>/dev/null || date +%s)"
+  disable_seconds="$(jq -r --arg plan "$plan" '
+    ($plan | tostring | ascii_downcase) as $p
+    | ((.disable_after_by_plan_hours // {})[$p] // null) as $plan_hours
+    | (
+        (.disable_after_by_plan_seconds // {})[$p]
+        // (if $plan_hours == null then null else ($plan_hours * 3600) end)
+        // .disable_after_seconds
+        // ((.disable_after_hours // 24) * 3600)
+      )
+    | tonumber
+    | if . < 1 then 86400 else floor end
+  ' "$policy_file" 2>/dev/null || printf '86400')"
+  disable_at="$(date -u -d "@$((published_epoch + disable_seconds))" +"%Y-%m-%dT%H:%M:%SZ" 2>/dev/null || date -u +"%Y-%m-%dT%H:%M:%SZ")"
+  now="$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
+  tmp="$(mktemp)"
+
+  jq \
+    --arg date "$now" \
+    --arg plan "$plan" \
+    --arg published_at "$published_at" \
+    --arg disable_at "$disable_at" \
+    --arg reason "${plan}_publish_telegram_enabled" '
+    .telegram_notify = true
+    | .commercial_free_telegram = {
+        first_published_at: $published_at,
+        disable_at: $disable_at,
+        evaluated_at: $date,
+        plan: $plan,
+        telegram_bound: true,
+        auto_enabled: true,
+        reason: $reason
+      }
+  ' "$meta_file" > "$tmp"
+
+  mv "$tmp" "$meta_file"
+  chmod 644 "$meta_file"
+
+  load_actions "$meta_file"
+  append_action "$meta_file" "free_telegram_notify_auto_enable" "system" "$(jq -r '.short_id // .short // ""' "$meta_file")"
+}
+
 append_status_history() {
   local meta_file="$1"
   local status="$2"
