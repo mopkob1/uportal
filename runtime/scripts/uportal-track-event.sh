@@ -209,7 +209,18 @@ if [ -f "$META_FILE" ]; then
   POST="$(jq -r '.post // ""' "$META_FILE" 2>/dev/null || echo "")"
   MAILS="$(jq -c 'if (.mails | type) == "array" then .mails else [] end' "$META_FILE" 2>/dev/null || echo '[]')"
 
-  ACTOR="$(jq -r '(.actions // [] | map(select(.actor != null and .actor != "")) | last | .actor) // ""' "$META_FILE" 2>/dev/null || echo "")"
+  ACTOR="$(jq -r '
+    [
+      (.created_by // empty),
+      (.owner // empty),
+      (.actor // empty),
+      (.actions // [] | map(select((.actor // "") != "" and (.actor // "") != "system")) | first | .actor // empty),
+      (.actions // [] | map(select((.actor // "") != "")) | first | .actor // empty)
+    ]
+    | map(tostring)
+    | map(select(. != ""))
+    | first // ""
+  ' "$META_FILE" 2>/dev/null || echo "")"
   OWNER="$(jq -r '.owner // ""' "$META_FILE" 2>/dev/null || echo "")"
   CREATED_BY="$(jq -r --arg actor "$ACTOR" '(.created_by // "") as $v | if $v == "" then $actor else $v end' "$META_FILE" 2>/dev/null || echo "$ACTOR")"
   PUBLISHED_AT="$(jq -r '(.created_at // "") as $created | if $created != "" then $created else ((.actions // [] | map(.date // empty) | first) // "") end' "$META_FILE" 2>/dev/null || echo "")"

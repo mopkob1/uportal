@@ -81,6 +81,7 @@ while IFS= read -r event_file; do
   NEEDS_ENRICH=1
   if jq -e '
     (.meta.actor // "") != ""
+    and (.meta.actor // "") != "system"
     and (.meta.created_by // "") != ""
     and (.meta.type // "") != ""
     and (.meta.subj // null) != null
@@ -98,14 +99,24 @@ while IFS= read -r event_file; do
         link: ($current_meta[0].link // (.meta.link // "")),
         post: ($current_meta[0].post // (.meta.post // "")),
         actor: (
-          $current_meta[0].actor
-          // ($current_meta[0].actions // [] | map(select(.actor != null and .actor != "")) | last | .actor)
-          // (.meta.actor // "")
+          [
+            $current_meta[0].created_by,
+            $current_meta[0].owner,
+            $current_meta[0].actor,
+            ($current_meta[0].actions // [] | map(select((.actor // "") != "" and (.actor // "") != "system")) | first | .actor),
+            ($current_meta[0].actions // [] | map(select((.actor // "") != "")) | first | .actor),
+            .meta.actor
+          ] | map(select(. != null and . != "")) | first // ""
         ),
         created_by: (
-          $current_meta[0].created_by
-          // ($current_meta[0].actions // [] | map(select(.actor != null and .actor != "")) | last | .actor)
-          // (.meta.created_by // "")
+          [
+            $current_meta[0].created_by,
+            $current_meta[0].owner,
+            $current_meta[0].actor,
+            ($current_meta[0].actions // [] | map(select((.actor // "") != "" and (.actor // "") != "system")) | first | .actor),
+            ($current_meta[0].actions // [] | map(select((.actor // "") != "")) | first | .actor),
+            .meta.created_by
+          ] | map(select(. != null and . != "")) | first // ""
         ),
         subj: ($current_meta[0].subj // (.meta.subj // "")),
         mails: (

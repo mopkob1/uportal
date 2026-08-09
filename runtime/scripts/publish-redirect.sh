@@ -185,6 +185,7 @@ jq -n \
   --argjson status_history "$STATUS_HISTORY_JSON" \
   --arg publication_id "$publication_id" \
   --arg token "$token" \
+  --arg actor "$actor" \
   --arg short_id "$short" \
   --arg short "$short" \
   --arg short_url "$SHORT_BASE_URL/s/$short" \
@@ -216,6 +217,8 @@ jq -n \
 
     publication_id: $publication_id,
     token: $token,
+    actor: $actor,
+    created_by: $actor,
     short_id: $short_id,
     short: $short,
 
