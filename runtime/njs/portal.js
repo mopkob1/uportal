@@ -1197,15 +1197,14 @@ function publicAsset(r) {
         return r.return(404);
     }
 
-    var bin = readBin(payloadDir(r, publicationId, token) + '/' + rel);
-    if (bin === null) {
-        bin = readBin(inboxDir(r, publicationId, token) + '/' + rel);
+    if (fileReadable(payloadDir(r, publicationId, token) + '/' + rel)) {
+        return r.internalRedirect('/_uportal_public_payload_asset/' + publicationId + '/' + token + '/' + rel);
     }
-    if (bin === null) return r.return(404);
+    if (fileReadable(inboxDir(r, publicationId, token) + '/' + rel)) {
+        return r.internalRedirect('/_uportal_public_inbox_asset/' + publicationId + '/' + token + '/' + rel);
+    }
 
-    r.headersOut['Content-Type'] = publicAssetContentType(rel, bin);
-    r.headersOut['Cache-Control'] = 'public, max-age=3600';
-    r.return(200, bin);
+    return r.return(404);
 }
 
 function pixel(r) {
