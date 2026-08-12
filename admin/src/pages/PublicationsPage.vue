@@ -1170,8 +1170,9 @@ function renderFreshEditor(row) {
           style: 'width: 100%',
           format: 'yyyy-MM-dd HH:mm',
           timePickerProps: { format: 'HH:mm' },
+          isDateDisabled: isFreshDateDisabled,
           onUpdateValue: value => {
-            getLinkParamDraft(row).fresh_ts = value
+            getLinkParamDraft(row).fresh_ts = normalizeFreshUntilTs(value)
           }
         }),
         h(NButton, {
@@ -1262,6 +1263,23 @@ function toDatePickerValue(value) {
   return date.getTime()
 }
 
+const MIN_FRESHNESS_DELAY_MS = 60 * 1000
+
+function todayStartTs() {
+  const date = new Date()
+  date.setHours(0, 0, 0, 0)
+  return date.getTime()
+}
+
+function isFreshDateDisabled(ts) {
+  return ts < todayStartTs()
+}
+
+function normalizeFreshUntilTs(value) {
+  if (!value) return null
+  return Math.max(value, Date.now() + MIN_FRESHNESS_DELAY_MS)
+}
+
 async function saveClicks(row) {
   try {
     const value = normalizeClicksLimit(getLinkParamDraft(row).remaining_clicks)
@@ -1281,8 +1299,10 @@ async function saveClicks(row) {
 
 async function saveFreshness(row) {
   try {
-    const value = getLinkParamDraft(row).fresh_ts
-        ? new Date(getLinkParamDraft(row).fresh_ts).toISOString()
+    const freshTs = normalizeFreshUntilTs(getLinkParamDraft(row).fresh_ts)
+    getLinkParamDraft(row).fresh_ts = freshTs
+    const value = freshTs
+        ? new Date(freshTs).toISOString()
         : '-1'
     await store.dispatch('setLinkFreshness', {
       publication_id: row.publication_id,

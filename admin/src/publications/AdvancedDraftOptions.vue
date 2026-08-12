@@ -13,6 +13,7 @@
                     style="width: 100%"
                     format="yyyy-MM-dd HH:mm"
                     :time-picker-props="{ format: 'HH:mm' }"
+                    :is-date-disabled="isFreshDateDisabled"
                     @update:value="updateFreshUntil"
                 />
               </template>
@@ -137,6 +138,7 @@ const texts = props.texts
 const publicationLocked = computed(() => props.publicationLocked)
 const message = useMessage()
 const freshUntilTs = ref(null)
+const MIN_FRESH_UNTIL_DELAY_MS = 60 * 1000
 
 watch(
     () => draft.fresh_until,
@@ -148,9 +150,25 @@ watch(
     { immediate: true }
 )
 
+function todayStartTs() {
+  const date = new Date()
+  date.setHours(0, 0, 0, 0)
+  return date.getTime()
+}
+
+function isFreshDateDisabled(ts) {
+  return ts < todayStartTs()
+}
+
+function normalizeFreshUntilTs(value) {
+  if (!value) return null
+  return Math.max(value, Date.now() + MIN_FRESH_UNTIL_DELAY_MS)
+}
+
 function updateFreshUntil(value) {
-  freshUntilTs.value = value
-  draft.fresh_until = value ? new Date(value).toISOString() : -1
+  const normalized = normalizeFreshUntilTs(value)
+  freshUntilTs.value = normalized
+  draft.fresh_until = normalized ? new Date(normalized).toISOString() : -1
 }
 
 function updateRemainingClicks(value) {
