@@ -199,6 +199,7 @@ import useLinkReport from '../publications/useLinkReport'
 import { deleteDraftAssetsForDraft } from '../services/draftAssetStore'
 import { formatCaption, getCaptions } from '../captions'
 import uportalLogo from '../assets/uportal-logo.svg'
+import { sendLinkToTelegram } from '../api/uportalApi'
 
 const pageCaps = getCaptions('publications')
 const columnLabels = pageCaps.columns
@@ -215,6 +216,10 @@ const tooltips = pageCaps.tooltips
 
 const store = useStore()
 const message = useMessage()
+const canSendToTelegram = computed(() => store.state.siteBackendAvailable &&
+    store.state.authMode === 'site-session' && store.state.siteSession?.authenticated &&
+    Boolean(store.state.siteSession?.bindings?.telegram))
+const telegramLinkSending = reactive({})
 const canUseTelegramNotify = computed(() => {
   const session = store.state.siteSession || {}
   const scope = Array.isArray(session.scope) ? session.scope : []
@@ -472,11 +477,14 @@ const childColumns = [
       }
 
       return shortUrl
-          ? copyCell({
-            text: shortUrl,
-            copy: buildLinkCopyValue(row, shortUrl),
-            mono: true
-          })
+          ? h('span', { style: 'display: inline-flex; align-items: center; gap: 6px;' }, [
+            telegramSendButton(row),
+            copyCell({
+              text: shortUrl,
+              copy: buildLinkCopyValue(row, shortUrl),
+              mono: true
+            })
+          ])
           : h('span', { class: 'muted' }, '—')
     }
   },
@@ -1682,7 +1690,7 @@ function renderRedirectUrlCell(row, shortUrl) {
   if (!shortUrl) return h('span', { class: 'muted' }, '—')
 
   const sourceUrl = getSourceUrl(row)
-  const children = []
+  const children = [telegramSendButton(row)]
 
   children.push(copyIconButton({
     icon: CopyOutline,
@@ -1702,6 +1710,43 @@ function renderRedirectUrlCell(row, shortUrl) {
   return h('span', {
     style: 'display: inline-flex; align-items: center; gap: 6px;'
   }, children)
+}
+
+function telegramSendButton(row) {
+  if (!canSendToTelegram.value || row.draft_id || !row.publication_id || !row.token) return null
+  const key = `${row.publication_id}:${row.token}`
+  return h(NTooltip, {}, {
+    trigger: () => h(NButton, {
+      circle: true,
+      quaternary: true,
+      size: 'tiny',
+      loading: !!telegramLinkSending[key],
+      disabled: !!telegramLinkSending[key],
+      'aria-label': tooltips.sendToTelegram,
+      onClick: (event) => {
+        event.stopPropagation()
+        sendShortLinkToTelegram(row)
+      }
+    }, { icon: () => h(NIcon, { size: 15 }, { default: () => h(Send) }) }),
+    default: () => tooltips.sendToTelegram
+  })
+}
+
+async function sendShortLinkToTelegram(row) {
+  if (!canSendToTelegram.value) return
+  const key = `${row.publication_id}:${row.token}`
+  if (telegramLinkSending[key]) return
+  telegramLinkSending[key] = true
+  try {
+    await sendLinkToTelegram(row.publication_id, row.token)
+    message.success(captions.telegramLinkSent)
+  } catch (error) {
+    const code = error?.response?.data?.error?.code
+    const detail = pageCaps.telegramSendErrors?.[code] || formatApiError(error)
+    message.error(formatCaption(captions.telegramLinkSendError, { error: detail }))
+  } finally {
+    delete telegramLinkSending[key]
+  }
 }
 
 function downloadQrIconButton(row, shortUrl) {

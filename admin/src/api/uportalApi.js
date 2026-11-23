@@ -71,6 +71,16 @@ export async function linksList(filters = {}) {
   return data
 }
 
+export async function sendLinkToTelegram(publicationId, token) {
+  const { data } = await api.post('/api/site/telegram/send-link', {
+    publication_id: publicationId,
+    token
+  })
+  assertSuccessResponse(data)
+  if (data?.data?.sent !== true) throw new Error('Telegram delivery was not confirmed')
+  return data
+}
+
 export async function publishDraftRequest(draft) {
   const payload = buildPublishPayload(draft)
   validatePublishPayload(payload)

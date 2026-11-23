@@ -6,6 +6,12 @@
       "authRequired": "Enter authorization settings",
       "tabs": {
         "publications": "Publications",
+      "telegramSendErrors": {
+        "telegram_send_unconfigured": "Telegram delivery is not configured on the server",
+        "telegram_delivery_failed": "Telegram delivery failed or was not confirmed",
+        "telegram_not_bound": "Bind Telegram to your account first",
+        "telegram_send_in_progress": "This link is already being sent"
+      },
         "activity": "Statistics",
         "dictionary": "Dictionary",
         "users": "Users"
@@ -98,6 +104,8 @@
         "unknown": "+?"
       },
       "messages": {
+        "telegramLinkSendError": "Could not send link to Telegram: {error}",
+        "telegramLinkSent": "Link sent to Telegram",
         "reportCopied": "Link report copied",
         "reportLoadError": "Failed to load link statistics",
         "reportTooltipEmpty": "No views",
@@ -142,6 +150,7 @@
         "statusChangeError": "Failed to change status: {error}"
       },
       "tooltips": {
+        "sendToTelegram": "Send to my Telegram",
         "refresh": "Refresh",
         "addLink": "Add link",
         "deleteDraft": "Delete draft",
@@ -457,6 +466,12 @@
       "authRequired": "Введите параметры авторизации",
       "tabs": {
         "publications": "Публикации",
+      "telegramSendErrors": {
+        "telegram_send_unconfigured": "На сервере не настроена отправка в Telegram",
+        "telegram_delivery_failed": "Доставка в Telegram не удалась или не подтверждена",
+        "telegram_not_bound": "Сначала привяжите Telegram к аккаунту",
+        "telegram_send_in_progress": "Эта ссылка уже отправляется"
+      },
         "activity": "Статистика",
         "dictionary": "Словарь",
         "users": "Пользователи"
@@ -549,6 +564,8 @@
         "unknown": "+?"
       },
       "messages": {
+        "telegramLinkSendError": "Не удалось отправить ссылку в Telegram: {error}",
+        "telegramLinkSent": "Ссылка отправлена в Telegram",
         "reportCopied": "Отчёт по ссылке скопирован",
         "reportLoadError": "Не удалось загрузить статистику по ссылке",
         "reportTooltipEmpty": "Нет просмотров",
@@ -593,6 +610,7 @@
         "statusChangeError": "Не удалось изменить статус: {error}"
       },
       "tooltips": {
+        "sendToTelegram": "Отправить себе в Telegram",
         "refresh": "Обновить",
         "addLink": "Добавить ссылку",
         "deleteDraft": "Удалить черновик",
@@ -908,6 +926,12 @@
       "authRequired": "Introduzca los datos de autorización",
       "tabs": {
         "publications": "Publicaciones",
+      "telegramSendErrors": {
+        "telegram_send_unconfigured": "El servidor no tiene configurado el envío a Telegram",
+        "telegram_delivery_failed": "El envío a Telegram falló o no se confirmó",
+        "telegram_not_bound": "Vincula Telegram a tu cuenta primero",
+        "telegram_send_in_progress": "Este enlace ya se está enviando"
+      },
         "activity": "Estadísticas",
         "dictionary": "Diccionario",
         "users": "Usuarios"
@@ -1000,6 +1024,8 @@
         "unknown": "+?"
       },
       "messages": {
+        "telegramLinkSendError": "No se pudo enviar el enlace a Telegram: {error}",
+        "telegramLinkSent": "Enlace enviado a Telegram",
         "reportCopied": "Informe del enlace copiado",
         "reportLoadError": "No se pudo cargar la estadística del enlace",
         "reportTooltipEmpty": "Sin vistas",
@@ -1044,6 +1070,7 @@
         "statusChangeError": "No se pudo cambiar el estado: {error}"
       },
       "tooltips": {
+        "sendToTelegram": "Enviar a mi Telegram",
         "refresh": "Actualizar",
         "addLink": "Añadir enlace",
         "deleteDraft": "Eliminar borrador",
